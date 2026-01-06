@@ -2,7 +2,7 @@ import requests
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
-N8N_WEBHOOK_URL = "http://localhost:5678/webhook-test/django-trigger"
+N8N_WEBHOOK_URL = "http://localhost:5678/webhook-test/social-post"
 
 @csrf_exempt
 def send_image_to_n8n(request):
@@ -25,7 +25,7 @@ def send_image_to_n8n(request):
             N8N_WEBHOOK_URL,
             files=files,
             data=data,
-            timeout=20
+            timeout=40
         )
 
         return JsonResponse({
