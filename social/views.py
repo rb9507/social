@@ -1,8 +1,9 @@
 import requests
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render
+from django.shortcuts import render,redirect
 from social.serilizers import AdminSerializer
+from social.models import SuperAdmin
 
 N8N_WEBHOOK_URL = "http://localhost:5678/webhook-test/social-post"
 
@@ -65,9 +66,25 @@ def create_admin(request):
                 "message": "Invalid data provided"
             }, status=400)
 
-        return render(request, '.html')
-    
+        return redirect('log_admin/')
+        
     return JsonResponse({"error": "Invalid method"}, status=405)
 
 def log_admin(request):
-    return render(request, 'superadmin.html')
+    return render(request, 'superadminlogin.html')
+
+def auth_admin(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
+        uname=SuperAdmin.objects.get(name=username)
+        if uname.password==password:
+                return render(request, 'superadmin.html')
+        else:
+                return JsonResponse({
+                    "success": False,
+                    "message": "Invalid Password"
+                }, status=400)
+
+    return JsonResponse({"error": "Invalid method"}, status=405)

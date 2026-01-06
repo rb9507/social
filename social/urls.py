@@ -6,5 +6,7 @@ urlpatterns = [
    path("upload-image/", send_image_to_n8n, name="upload_image"),
    path("super-admin/", superAdmin, name="super_admin"),
    path("admin-registration/", admin_registration, name="admin_registration"),
-   path("create-admin/", create_admin, name="create_admin")
+   path("create-admin/", create_admin, name="create_admin"),
+   path("log-admin/", log_admin, name="log_admin"),
+   path("auth-admin/", auth_admin, name="auth_admin")
 ]
