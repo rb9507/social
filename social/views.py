@@ -2,6 +2,7 @@ import requests
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
+from social.serilizers import AdminSerializer
 
 N8N_WEBHOOK_URL = "http://localhost:5678/webhook-test/social-post"
 
@@ -38,3 +39,32 @@ def send_image_to_n8n(request):
 
 def superAdmin(request):
     return render(request, 'superadmin.html')  
+
+def admin_registration(request):
+    return render(request, 'adminregestration.html')
+
+def create_admin(request):
+    if request.method == "POST":
+        name = request.POST.get("username")
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+
+        print(name, email, password)
+
+        serialize_admin = AdminSerializer(data={
+            "name": name,
+            "email": email,
+            "password": password
+        }, context=request)
+
+        if serialize_admin.is_valid():
+            serialize_admin.save()
+        else:
+            return JsonResponse({
+                "success": False,
+                "message": "Invalid data provided"
+            }, status=400)
+
+        return render(request, 'superadmin.html')
+    
+    return JsonResponse({"error": "Invalid method"}, status=405)
