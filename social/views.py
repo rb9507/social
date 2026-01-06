@@ -1,6 +1,7 @@
 import requests
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import render
 
 N8N_WEBHOOK_URL = "http://localhost:5678/webhook-test/social-post"
 
@@ -34,3 +35,6 @@ def send_image_to_n8n(request):
         })
 
     return JsonResponse({"error": "Invalid method"}, status=405)
+
+def superAdmin(request):
+    return render(request, 'superadmin.html')  
