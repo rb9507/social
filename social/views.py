@@ -65,6 +65,9 @@ def create_admin(request):
                 "message": "Invalid data provided"
             }, status=400)
 
-        return render(request, 'superadmin.html')
+        return render(request, '.html')
     
     return JsonResponse({"error": "Invalid method"}, status=405)
+
+def log_admin(request):
+    return render(request, 'superadmin.html')

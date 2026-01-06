@@ -29,50 +29,18 @@
         <div class="card-body" id="registerForm">
             <h4 class="text-center mb-4">Super Admin Registration</h4>
 
-            <form method="post">
+            <form method="post" action="{% url 'create_admin' %}">
+                {% csrf_token %}
                 <!-- Email -->
                 <div class="mb-3">
                     <label class="form-label">Email ID</label>
                     <input type="email" class="form-control" name="email" required>
                 </div>
 
-<<<<<<< HEAD
-                <div class="card-body">
-                    <form method="post" action="{% url 'create_admin' %}">
-                        {% csrf_token %}
-
-                        <!-- Email Field -->
-                        <div class="mb-3">
-                            <label class="form-label">Email ID</label>
-                            <input type="email" class="form-control" name="email" placeholder="Enter email" required>
-                        </div>
-
-                        <!-- Username Field -->
-                        <div class="mb-3">
-                            <label class="form-label">Username</label>
-                            <input type="text" class="form-control" name="username" placeholder="Enter username" required>
-                        </div>
-
-                        <!-- Password Field -->
-                        <div class="mb-3">
-                            <label class="form-label">Password</label>
-                            <input type="password" class="form-control" name="password" placeholder="Enter password" required>
-                        </div>
-
-                        <!-- Submit Button -->
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">
-                                Register
-                            </button>
-                        </div>
-
-                    </form>
-=======
                 <!-- Username -->
                 <div class="mb-3">
                     <label class="form-label">Username</label>
                     <input type="text" class="form-control" name="username" required>
->>>>>>> 53ffb828a643254db184b709a5bb402534a55bce
                 </div>
 
                 <!-- Password -->
@@ -89,56 +57,11 @@
             </form>
 
             <p class="text-center mt-3">
-                Already registered?
-                <span class="toggle-link" onclick="showLogin()">Login</span>
+                Already registered? 
+                <a href="{% url 'super_admin' %}" class="toggle-link">Login here</a>
             </p>
         </div>
-
-        <!-- LOGIN FORM -->
-        <div class="card-body d-none" id="loginForm">
-            <h4 class="text-center mb-4">Super Admin Login</h4>
-
-            <form method="post">
-                <!-- Username or Email -->
-                <div class="mb-3">
-                    <label class="form-label">Username / Email</label>
-                    <input type="text" class="form-control" name="login_id" required>
-                </div>
-
-                <!-- Password -->
-                <div class="mb-3">
-                    <label class="form-label">Password</label>
-                    <input type="password" class="form-control" name="login_password" required>
-                </div>
-
-                <div class="d-grid">
-                    <button type="submit" class="btn btn-success">
-                        Login
-                    </button>
-                </div>
-            </form>
-
-            <p class="text-center mt-3">
-                New here?
-                <span class="toggle-link" onclick="showRegister()">Register</span>
-            </p>
-        </div>
-
     </div>
 </div>
-
-<!-- Toggle Script -->
-<script>
-    function showLogin() {
-        document.getElementById("registerForm").classList.add("d-none");
-        document.getElementById("loginForm").classList.remove("d-none");
-    }
-
-    function showRegister() {
-        document.getElementById("loginForm").classList.add("d-none");
-        document.getElementById("registerForm").classList.remove("d-none");
-    }
-</script>
-
 </body>
 </html>
