@@ -9,7 +9,7 @@ SCOPES = ['https://www.googleapis.com/auth/drive']
 
 SERVICE_ACCOUNT_FILE = os.path.join(
     settings.BASE_DIR,
-    'credentials.json'
+    'data.json'
 )
 
 FOLDER_ID = '1cg4gvKQLTeN5NzIbtJDDzib_x7p1Q1j8'
