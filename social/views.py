@@ -4,36 +4,36 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render,redirect
 from social.serilizers import AdminSerializer
 from social.models import SuperAdmin,Post
+from django.contrib.auth import authenticate, login
+from utils.google_drive import upload_image_to_drive
 
 N8N_WEBHOOK_URL = "http://localhost:5678/webhook-test/social-post"
 
-@csrf_exempt
-def send_image_to_n8n(img,cap):
-        image = img
-        caption = cap
 
-        if not image or not caption:
-            return JsonResponse({"error": "Image and caption required"}, status=400)
+def send_image_to_n8n(image_url, caption):
+    payload = {
+        "image_url": image_url,
+        "caption": caption
+    }
 
-        files = {
-            "image": (image.name, image.read(), image.content_type)
-        }
-
-        data = {
-            "caption": caption
-        }
-
+    try:
         response = requests.post(
             N8N_WEBHOOK_URL,
-            files=files,
-            data=data,
+            json=payload,
             timeout=40
         )
-
+    except requests.exceptions.RequestException as e:
         return JsonResponse({
-            "success": True,
-            "n8n_status": response.status_code
-        })
+            "success": False,
+            "error": str(e)
+        }, status=500)
+
+    return JsonResponse({
+        "success": True,
+        "n8n_status": response.status_code,
+        "n8n_response": response.text
+    })
+
 
 def superAdmin(request):
     return render(request, 'superadmin.html')  
@@ -70,37 +70,75 @@ def create_admin(request):
 def log_admin(request):
     return render(request, 'superadminlogin.html')
 
+
+
+
 def auth_admin(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
 
-        uname=SuperAdmin.objects.get(name=username)
-        if uname.password==password:
-                return render(request, 'superadmin.html')
-        else:
-                return JsonResponse({
-                    "success": False,
-                    "message": "Invalid Password"
-                }, status=400)
+        if not username or not password:
+            return JsonResponse({
+                "success": False,
+                "message": "Username and password are required"
+            }, status=400)
+
+        user = authenticate(
+            request,
+            username=username,
+            password=password
+        )
+
+        if user is None:
+            return JsonResponse({
+                "success": False,
+                "message": "Invalid username or password"
+            }, status=400)
+
+        # Login strictly using request data
+        login(request, user)
+
+        return render(request, 'superadmin.html')
 
     return JsonResponse({"error": "Invalid method"}, status=405)
+
 
 def create_post(request):
     return render(request, 'createpost.html')
 
+from utils.google_drive import upload_image_to_drive
+
 def post_submitted(request):
     if request.method == "POST":
-        image = request.FILES.get("image")
-        caption = request.POST.get("caption")
+        image = request.FILES.get("post_image")
+        caption = request.POST.get("post_text")
+
+        if not image or not caption:
+            return JsonResponse({
+                "success": False,
+                "message": "Image and caption are required"
+            }, status=400)
+
+        try:
+            super_admin = request.user.super_admin
+        except SuperAdmin.DoesNotExist:
+            return JsonResponse({
+                "success": False,
+                "message": "Only SuperAdmins can create posts"
+            }, status=403)
 
         post = Post.objects.create(
             image=image,
             caption=caption,
-            created_by=SuperAdmin.objects.first()  # Assuming the first SuperAdmin is creating the post
+            created_by=super_admin
         )
 
-        response = send_image_to_n8n(image, caption)
-        return response
+        # Upload to Google Drive
+        image_url = upload_image_to_drive(image)
+
+        print("Image uploaded to Google Drive:", image_url)
+        # Send URL + caption to n8n
+        return send_image_to_n8n(image_url, caption)
 
     return JsonResponse({"error": "Invalid method"}, status=405)
