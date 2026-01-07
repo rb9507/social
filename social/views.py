@@ -5,15 +5,16 @@ from django.shortcuts import render,redirect
 from social.serilizers import AdminSerializer
 from social.models import SuperAdmin,Post
 from django.contrib.auth import authenticate, login
-from utils.google_drive import upload_image_to_drive
+from social.utils.cloudinary import upload_image_to_cloudinary
 
 N8N_WEBHOOK_URL = "http://localhost:5678/webhook-test/social-post"
 
 
-def send_image_to_n8n(image_url, caption):
+def send_image_to_n8n(image_url, caption,post_id):
     payload = {
         "image_url": image_url,
-        "caption": caption
+        "caption": caption,
+        "post_id": post_id
     }
 
     try:
@@ -99,7 +100,9 @@ def auth_admin(request):
         # Login strictly using request data
         login(request, user)
 
-        return render(request, 'superadmin.html')
+        posts=Post.objects.all().order_by('-created_at')
+
+        return render(request, 'superadmin.html',{'posts':posts})
 
     return JsonResponse({"error": "Invalid method"}, status=405)
 
@@ -107,7 +110,6 @@ def auth_admin(request):
 def create_post(request):
     return render(request, 'createpost.html')
 
-from utils.google_drive import upload_image_to_drive
 
 def post_submitted(request):
     if request.method == "POST":
@@ -134,11 +136,16 @@ def post_submitted(request):
             created_by=super_admin
         )
 
-        # Upload to Google Drive
-        image_url = upload_image_to_drive(image)
+        post_id = post.id
+        print("Post created with ID:", post_id)
 
-        print("Image uploaded to Google Drive:", image_url)
+
+        # Upload to Cloudinary
+        image_url = upload_image_to_cloudinary(image)
+
+        print("Image uploaded to Cloudinary:", image_url)
         # Send URL + caption to n8n
-        return send_image_to_n8n(image_url, caption)
+        return send_image_to_n8n(image_url, caption,post_id)
 
     return JsonResponse({"error": "Invalid method"}, status=405)
+

@@ -126,3 +126,10 @@ MEDIA_ROOT=os.path.join(BASE_DIR,'media')
 
 STATIC_URL = 'static/'
 STATICFIELS_DIRS=[os.path.join(BASE_DIR,'static')]
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'dclz1tlmh',
+    'API_KEY': '237827795133481',
+    'API_SECRET': 'umWZSPPYbyjL6N9cyr22ZUzzy7w'
+}
+

@@ -88,46 +88,20 @@
       </form>
 
       <div class="row">
-
+        {% for post in posts %}
         <!-- Post Card 1 -->
         <div class="col-md-4">
           <div class="card post-card shadow-sm mb-4">
-            <img src="https://via.placeholder.com/300x180" class="card-img-top" alt="Post Image">
+            <img src="{{ post.image.url }}" class="card-img-top" alt="Post Image">
             <div class="card-body">
               <h5 class="card-title">New Product Launch</h5>
-              <p class="card-text">Post created by SuperAdmin for all affiliates.</p>
+              <p class="card-text">{{ post.caption }}</p>
               <a href="#" class="btn btn-primary btn-sm">Edit</a>
               <a href="#" class="btn btn-danger btn-sm">Delete</a>
             </div>
           </div>
         </div>
-
-        <!-- Post Card 2 -->
-        <div class="col-md-4">
-          <div class="card post-card shadow-sm mb-4">
-            <img src="https://via.placeholder.com/300x180" class="card-img-top" alt="Post Image">
-            <div class="card-body">
-              <h5 class="card-title">Weekly Update</h5>
-              <p class="card-text">Marketing update content for affiliates.</p>
-              <a href="#" class="btn btn-primary btn-sm">Edit</a>
-              <a href="#" class="btn btn-danger btn-sm">Delete</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Post Card 3 -->
-        <div class="col-md-4">
-          <div class="card post-card shadow-sm mb-4">
-            <img src="https://via.placeholder.com/300x180" class="card-img-top" alt="Post Image">
-            <div class="card-body">
-              <h5 class="card-title">Festival Offer</h5>
-              <p class="card-text">Promotional festival post for sharing.</p>
-              <a href="#" class="btn btn-primary btn-sm">Edit</a>
-              <a href="#" class="btn btn-danger btn-sm">Delete</a>
-            </div>
-          </div>
-        </div>
-
+        {% endfor %}
       </div>
 
     </div>
