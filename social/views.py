@@ -3,15 +3,14 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render,redirect
 from social.serilizers import AdminSerializer
-from social.models import SuperAdmin
+from social.models import SuperAdmin,Post
 
 N8N_WEBHOOK_URL = "http://localhost:5678/webhook-test/social-post"
 
 @csrf_exempt
-def send_image_to_n8n(request):
-    if request.method == "POST":
-        image = request.FILES.get("image")
-        caption = request.POST.get("caption")
+def send_image_to_n8n(img,cap):
+        image = img
+        caption = cap
 
         if not image or not caption:
             return JsonResponse({"error": "Image and caption required"}, status=400)
@@ -35,8 +34,6 @@ def send_image_to_n8n(request):
             "success": True,
             "n8n_status": response.status_code
         })
-
-    return JsonResponse({"error": "Invalid method"}, status=405)
 
 def superAdmin(request):
     return render(request, 'superadmin.html')  
@@ -66,7 +63,7 @@ def create_admin(request):
                 "message": "Invalid data provided"
             }, status=400)
 
-        return redirect('log_admin/')
+        return redirect('/social/log-admin/')
         
     return JsonResponse({"error": "Invalid method"}, status=405)
 
@@ -86,5 +83,24 @@ def auth_admin(request):
                     "success": False,
                     "message": "Invalid Password"
                 }, status=400)
+
+    return JsonResponse({"error": "Invalid method"}, status=405)
+
+def create_post(request):
+    return render(request, 'createpost.html')
+
+def post_submitted(request):
+    if request.method == "POST":
+        image = request.FILES.get("image")
+        caption = request.POST.get("caption")
+
+        post = Post.objects.create(
+            image=image,
+            caption=caption,
+            created_by=SuperAdmin.objects.first()  # Assuming the first SuperAdmin is creating the post
+        )
+
+        response = send_image_to_n8n(image, caption)
+        return response
 
     return JsonResponse({"error": "Invalid method"}, status=405)
