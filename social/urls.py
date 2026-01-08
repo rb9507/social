@@ -11,7 +11,7 @@ urlpatterns = [
    path("create-admin/", create_admin, name="create_admin"),
    path("register/",views.affiliate_register,name='affiliate_register'),
    path("login/",views.affiliate_login,name='affiliate_login'),
-   path("dashboard/", views.affiliate_dashboard, name="affiliate_dashboard"),
+   path("dashboard/", views.affiliate_dashboard, name="affiliate_userdashboard"),
 
       
 
