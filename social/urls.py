@@ -12,5 +12,12 @@ urlpatterns = [
    path("auth-admin/", auth_admin, name="auth_admin"),
    path("create-post/", create_post, name="create_post"),
    path("post-submitted/", post_submitted, name="post_submitted"),
-   path("posts-list/", posts_list, name="posts_list")
+   path("posts-list/", posts_list, name="posts_list"),
+   path("affiliate-register/", affiliate_register, name="affiliate_register"),
+   path("affiliate-login/", affiliate_login, name="affiliate_login"),
+   path("affiliate-dashboard/", affiliate_dashboard, name="affiliate_dashboard"),
+   path("like/",Like_post,name="Like_post"),
+   path("comment/",comment_post,name="comment_post"),
+   path("share/",share_post,name="share_post"),
+
 ]

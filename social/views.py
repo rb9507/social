@@ -9,12 +9,17 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
-from .models import AffiliateLogin
+#from .models import AffiliateLogin
 from django.db import models
 from .models import Post
-from .models import Post, AffiliatePostAction
+#from .models import Post, AffiliatePostAction
 from django.contrib.auth.decorators import login_required
-from utils.cloudConnect import upload_image_to_cloudinary    
+from utils.cloudConnect import upload_image_to_cloudinary   
+from .models import Like, Post, AffiliateProfile
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse
+from .models import *
+
 
 N8N_WEBHOOK_URL = "http://localhost:5678/webhook-test/social-post"
 #sending image
@@ -157,6 +162,12 @@ def post_submitted(request):
 
 
 #affiliate user regestration
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth.hashers import make_password
+from .models import AffiliateProfile
+
+
 def affiliate_register(request):
     if request.method == "POST":
         username = request.POST.get('username')
@@ -167,67 +178,128 @@ def affiliate_register(request):
         facebook_secret = request.POST.get('facebook_secret')
         twitter_secret = request.POST.get('twitter_secret')
 
-        if User.objects.filter(username=username).exists():
+        if AffiliateProfile.objects.filter(username=username).exists():
             messages.error(request, "Username already exists")
             return redirect('affiliate_register')
 
-        user = User.objects.create_user(
-            username=username,
-            password=password
-        )
-
         AffiliateProfile.objects.create(
-            user = user,
+            username=username,
+            password=make_password(password),  # hash password
             instagram_secret=make_password(instagram_secret),
             linkedin_secret=make_password(linkedin_secret),
             facebook_secret=make_password(facebook_secret),
             twitter_secret=make_password(twitter_secret),
         )
 
-        messages.success(request, "Registration successful")
+        messages.success(request, "Affiliate registered successfully")
         return redirect('affiliate_login')
-    
 
     return render(request, 'regestration.html')
 
 #Affiliated user Login
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth.hashers import check_password
+from .models import AffiliateProfile
+
+
 def affiliate_login(request):
     if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
+        username = request.POST.get('username')
+        password = request.POST.get('password')
 
-        user = authenticate(request, username=username, password=password)
+        try:
+            affiliate = AffiliateProfile.objects.get(username=username)
+        except AffiliateProfile.DoesNotExist:
+            messages.error(request, "Invalid username or password")
+            return redirect('affiliate_login')
 
-        if user is not None:
-            login(request, user)
+        if check_password(password, affiliate.password):
+            # ✅ store affiliate id in session
+            request.session['affiliate_id'] = affiliate.id
+            request.session['affiliate_username'] = affiliate.username
 
-            AffiliateLogin.objects.create(
-                username=username,
-                password=password   # storing as-is (not recommended, but as you want)
-            )
-
-            return redirect('affiliate_userdashboard')
+            return redirect('affiliate_dashboard')  # REDIRECT HERE
         else:
             messages.error(request, "Invalid username or password")
+            return redirect('affiliate_login')
 
-    return render(request, "affiliateduserlogin.html")
+    return render(request, 'affiliateduserlogin.html')
+
 
 # Affiliated user dashboard
 def affiliate_dashboard(request):
+    if not request.session.get('affiliate_id'):
+        return redirect('affiliate_login')
+
+    posts = Post.objects.all().order_by('-created_at')
+
+    return render(
+        request,
+        'affiliate_userdashboard.html',
+        {'posts': posts}
+    )
+
+def Like_post(request):
+    affiliate_id = request.session.get("affiliate_id")
+    post_id = request.POST.get("post_id")
+    affiliate = AffiliateProfile.objects.get(id=affiliate_id)
+    post = Post.objects.get(id=post_id)
+    Like.objects.get_or_create(affiliate = affiliate,post=post)
+    return JsonResponse({"status":"success"})
+
+def comment_post(request):
+    affiliate_id = request.session.get("affiliate_id")
+    post_id = request.POST.get("post_id")
+    comment_text = request.POST.get("comment_text")
+    affiliate = AffiliateProfile.objects.get(id=affiliate_id)
+    post = Post.objects.get(id=post_id)
+    Comment.objects.create(affiliate = affiliate,post=post,text=comment_text)
+    return JsonResponse({"status":"succcess"})
+
+def share_post(request):
+    affiliate_id = request.session.get("affiliate_id")
+    post_id = request.POST.get("post_id")
+    platform = request.POST.get("platform")
+    affiliate = AffiliateProfile.objects.get(id=affiliate_id)
+    post = Post.objects.get(id=post_id)
+    Share.objects.create(affiliate = affiliate,post=post,platform=platform)
+    return JsonResponse({"status":"success"})
+
+
+
+def affiliate_dashboard(request):
     posts = Post.objects.all().order_by("-created_at")
     return render(request, 'affiliate_userdashboard.html',{'posts': posts})
-# Affiliate post action
-def affiliate_post_actoion(request):
-    if request.method == "POST":
-         AffiliatePostAction.objects.create(
-             affiliate_username = request.Post.get('username'),
-             post_id = request.POST.get('post_id'),
-             action = request.POST.get('actio'),
-             comment_text = request.POST.get('comment','')
-         )
-         return JsonResponse({'status': 'success'})
+
+
+# # Affiliate post action
+# def affiliate_post_actoion(request):
+#     if request.method == "POST":
+#          AffiliatePostAction.objects.create(
+#              affiliate_username = request.Post.get('username'),
+#              post_id = request.POST.get('post_id'),
+#              action = request.POST.get('actio'),
+#              comment_text = request.POST.get('comment','')
+#          )
+#          return JsonResponse({'status': 'success'})
+
 
 
 def posts_list(request):
-    posts = Post.objects.all().order_by('-created_at')
-    return render(request, 'postslist.html', {'posts': posts})
+     posts = Post.objects.all().order_by('-created_at')
+     return render(request, 'postslist.html', {'posts': posts})
+
+
+
+# def affiliate_dashboard(request):
+#     if not request.session.get('affiliate_id'):
+#         return redirect('affiliate_login')
+
+#     posts = Post.objects.filter(is_active=True).order_by('-created_at')
+
+#     return render(
+#         request,
+#         "affiliate_userdashboard.html",
+#         {"posts": posts}
+#     )

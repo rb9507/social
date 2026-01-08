@@ -26,9 +26,12 @@
   <div class="container d-flex justify-content-center align-items-center min-vh-100">
     <div class="container-box">
       <h2 class="text-center mb-4">Affiliate User Registration</h2>
-
-      <form action="/register/" method="post">
+      <form method="POST" action="{% url 'affiliate_register' %}">
         {% csrf_token %}
+    
+
+
+        
 
         <div class="mb-3">
           <label class="form-label">Username</label>
