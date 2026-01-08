@@ -10,5 +10,6 @@ urlpatterns = [
    path("log-admin/", log_admin, name="log_admin"),
    path("auth-admin/", auth_admin, name="auth_admin"),
    path("create-post/", create_post, name="create_post"),
-   path("post-submitted/", post_submitted, name="post_submitted")
+   path("post-submitted/", post_submitted, name="post_submitted"),
+   path("posts-list/", posts_list, name="posts_list")
 ]
