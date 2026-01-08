@@ -4,6 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render,redirect
 from social.serilizers import AdminSerializer
 from social.models import SuperAdmin,Post
+<<<<<<< HEAD
 from .models import AffiliateProfile
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
@@ -13,37 +14,40 @@ from .models import AffiliateLogin
 from django.db import models
 from .models import Post
 from .models import Post, AffiliatePostAction
+=======
+from django.contrib.auth import authenticate, login
+from erp.utils.cloudConnect import upload_image_to_cloudinary
+>>>>>>> 0cce5019967b306a709b8fa567e62635e78dc287
 
 N8N_WEBHOOK_URL = "http://localhost:5678/webhook-test/social-post"
 #sending image
 
-@csrf_exempt
-def send_image_to_n8n(img,cap):
-        image = img
-        caption = cap
 
-        if not image or not caption:
-            return JsonResponse({"error": "Image and caption required"}, status=400)
+def send_image_to_n8n(image_url, caption,post_id):
+    payload = {
+        "image_url": image_url,
+        "caption": caption,
+        "post_id": post_id
+    }
 
-        files = {
-            "image": (image.name, image.read(), image.content_type)
-        }
-
-        data = {
-            "caption": caption
-        }
-
+    try:
         response = requests.post(
             N8N_WEBHOOK_URL,
-            files=files,
-            data=data,
+            json=payload,
             timeout=40
         )
-
+    except requests.exceptions.RequestException as e:
         return JsonResponse({
-            "success": True,
-            "n8n_status": response.status_code
-        })
+            "success": False,
+            "error": str(e)
+        }, status=500)
+
+    return JsonResponse({
+        "success": True,
+        "n8n_status": response.status_code,
+        "n8n_response": response.text
+    })
+
 
 def superAdmin(request):
     return render(request, 'superadmin.html')  
@@ -80,39 +84,80 @@ def create_admin(request):
 def log_admin(request):
     return render(request, 'superadminlogin.html')
 
+
+
+
 def auth_admin(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
 
-        uname=SuperAdmin.objects.get(name=username)
-        if uname.password==password:
-                return render(request, 'superadmin.html')
-        else:
-                return JsonResponse({
-                    "success": False,
-                    "message": "Invalid Password"
-                }, status=400)
+        if not username or not password:
+            return JsonResponse({
+                "success": False,
+                "message": "Username and password are required"
+            }, status=400)
+
+        user = authenticate(
+            request,
+            username=username,
+            password=password
+        )
+
+        if user is None:
+            return JsonResponse({
+                "success": False,
+                "message": "Invalid username or password"
+            }, status=400)
+
+        # Login strictly using request data
+        login(request, user)
+
+        posts=Post.objects.all().order_by('-created_at')
+
+        return render(request, 'superadmin.html',{'posts':posts})
 
     return JsonResponse({"error": "Invalid method"}, status=405)
+
 
 def create_post(request):
     return render(request, 'createpost.html')
 
+
 def post_submitted(request):
     if request.method == "POST":
-        image = request.FILES.get("image")
-        caption = request.POST.get("caption")
+        image = request.FILES.get("post_image")
+        caption = request.POST.get("post_text")
 
+        if not image or not caption:
+            return JsonResponse({
+                "success": False,
+                "message": "Image and caption are required"
+            }, status=400)
+
+        try:
+            super_admin = request.user.super_admin
+        except SuperAdmin.DoesNotExist:
+            return JsonResponse({
+                "success": False,
+                "message": "Only SuperAdmins can create posts"
+            }, status=403)
+
+        # ✅ Upload FIRST
+        image_url = upload_image_to_cloudinary(image)
+
+        # ✅ Then save post
         post = Post.objects.create(
-            image=image,
+            image=image,   # optional if you want local storage
             caption=caption,
-            created_by=SuperAdmin.objects.first()  # Assuming the first SuperAdmin is creating the post
+            created_by=super_admin
         )
 
-        response = send_image_to_n8n(image, caption)
-        return response
+        post_id = post.id
+        print("Post created with ID:", post_id)
+        print("Image uploaded to Cloudinary:", image_url)
 
+<<<<<<< HEAD
     return JsonResponse({"error": "Invalid method"}, status=405)
 
 
@@ -193,3 +238,8 @@ def affiliate_post_actoion(request):
 
 
 
+=======
+        return send_image_to_n8n(image_url, caption, post_id)
+
+    return JsonResponse({"error": "Invalid method"}, status=405)
+>>>>>>> 0cce5019967b306a709b8fa567e62635e78dc287
