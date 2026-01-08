@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 from .views import *
-from .views import affiliate_register     
+from .views import affiliate_register   
 
 urlpatterns = [
    path("upload-image/", send_image_to_n8n, name="upload_image"),
