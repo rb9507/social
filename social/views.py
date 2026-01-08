@@ -4,7 +4,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render,redirect
 from social.serilizers import AdminSerializer
 from social.models import SuperAdmin,Post
-<<<<<<< HEAD
 from .models import AffiliateProfile
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
@@ -14,10 +13,6 @@ from .models import AffiliateLogin
 from django.db import models
 from .models import Post
 from .models import Post, AffiliatePostAction
-=======
-from django.contrib.auth import authenticate, login
-from erp.utils.cloudConnect import upload_image_to_cloudinary
->>>>>>> 0cce5019967b306a709b8fa567e62635e78dc287
 
 N8N_WEBHOOK_URL = "http://localhost:5678/webhook-test/social-post"
 #sending image
@@ -157,7 +152,6 @@ def post_submitted(request):
         print("Post created with ID:", post_id)
         print("Image uploaded to Cloudinary:", image_url)
 
-<<<<<<< HEAD
     return JsonResponse({"error": "Invalid method"}, status=405)
 
 
@@ -238,8 +232,3 @@ def affiliate_post_actoion(request):
 
 
 
-=======
-        return send_image_to_n8n(image_url, caption, post_id)
-
-    return JsonResponse({"error": "Invalid method"}, status=405)
->>>>>>> 0cce5019967b306a709b8fa567e62635e78dc287
