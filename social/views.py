@@ -228,8 +228,6 @@ def affiliate_post_actoion(request):
          return JsonResponse({'status': 'success'})
 
 
-         
-
-
-
-
+def posts_list(request):
+    posts = Post.objects.all().order_by('-created_at')
+    return render(request, 'postslist.html', {'posts': posts})
