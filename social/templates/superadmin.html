@@ -79,8 +79,9 @@
 
       <!-- Post Cards -->
       <h4 class="mb-3">Recent Posts</h4>
-    
-     <form class="mb-4" action="/create-post" method="post">
+
+     <form class="mb-4" action="{% url 'create_post' %}" method="post">
+      {% csrf_token %}
         <button type="submit" class="btn btn-success">
           <i class="bi bi-plus-circle"></i> Create New Post
         </button>
