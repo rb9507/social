@@ -23,6 +23,3 @@ urlpatterns = [
     path('',include('social.urls')),
     
 ]
-
-
-
