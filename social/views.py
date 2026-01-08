@@ -5,11 +5,13 @@ from django.shortcuts import render,redirect
 from social.serilizers import AdminSerializer
 from social.models import SuperAdmin,Post
 from django.contrib.auth import authenticate, login
-from utils.cloudinary import upload_image_to_cloudinary
+from utils.cloudConnect import upload_image_to_cloudinary
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 
 
 N8N_WEBHOOK_URL = "http://localhost:5678/webhook-test/social-post"
+#sending image
 
 
 def send_image_to_n8n(image_url, caption,post_id):
@@ -131,26 +133,20 @@ def post_submitted(request):
                 "message": "Only SuperAdmins can create posts"
             }, status=403)
 
+        # ✅ Upload FIRST
+        image_url = upload_image_to_cloudinary(image)
+
+        # ✅ Then save post
         post = Post.objects.create(
-            image=image,
+            image=image,   # optional if you want local storage
             caption=caption,
             created_by=super_admin
         )
 
         post_id = post.id # type: ignore
         print("Post created with ID:", post_id)
-
-
-        # Upload to Cloudinary
-        image_url = upload_image_to_cloudinary(image)
-
         print("Image uploaded to Cloudinary:", image_url)
-        # Send URL + caption to n8n
-        return send_image_to_n8n(image_url, caption,post_id)
+
+        return send_image_to_n8n(image_url, caption, post_id)
 
     return JsonResponse({"error": "Invalid method"}, status=405)
-
-
-def posts_list(request):
-    posts = Post.objects.all().order_by('-created_at')
-    return render(request, 'postslist.html', {'posts': posts})
