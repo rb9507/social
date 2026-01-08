@@ -47,8 +47,6 @@ def send_image_to_n8n(image_url, caption,post_id):
 
 
 
-
-@login_required
 def superAdmin(request):
     posts = Post.objects.order_by('-created_at')[:6]
     posts_count = Post.objects.count()
@@ -98,8 +96,6 @@ def log_admin(request):
     return render(request, 'superadminlogin.html')
 
 
-
-
 def auth_admin(request):
     if request.method == "POST":
         username = request.POST.get("username")
@@ -124,7 +120,9 @@ def post_submitted(request):
     if request.method == "POST":
         image = request.FILES.get("post_image")
         caption = request.POST.get("post_text")
+        user=request.POST.get("user_id")  
 
+        print("Admin User ID:", user)
         if not image or not caption:
             return JsonResponse({
                 "success": False,
@@ -217,6 +215,7 @@ def affiliate_dashboard(request):
     posts = Post.objects.all().order_by("-created_at")
     return render(request, 'affiliate_userdashboard.html',{'posts': posts})
 # Affiliate post action
+
 def affiliate_post_actoion(request):
     if request.method == "POST":
          AffiliatePostAction.objects.create(
@@ -231,3 +230,60 @@ def affiliate_post_actoion(request):
 def posts_list(request):
     posts = Post.objects.all().order_by('-created_at')
     return render(request, 'postslist.html', {'posts': posts})
+
+def affiliate_users(request):
+    affiliate_profiles = AffiliateProfile.objects.all()
+    return render(request, 'affiliateusers.html', {'user': affiliate_profiles})
+
+def setting(request):
+    return render(request, 'settings.html')
+
+def profile(request):
+    return render(request, 'profile.html')
+
+def update_admin_profile(request):
+    if request.method == "POST":
+        first_name = request.POST.get("first_name")
+        last_name = request.POST.get("last_name")
+        email = request.POST.get("email")
+
+        user = request.user
+        user.first_name = first_name
+        user.last_name = last_name
+        user.email = email
+        user.save()
+
+        print(user)
+
+        messages.success(request, "Profile updated successfully")
+        return redirect('profile')
+
+    return JsonResponse({"error": "Invalid method"}, status=405)
+
+def change_password(request):
+    return render(request, 'changepassword.html')
+
+def update_password(request):
+    if request.method == "POST":
+        current_password = request.POST.get("old_password")
+        new_password = request.POST.get("new_password1")
+        confirm_password = request.POST.get("new_password2")
+
+        user = request.user
+
+        if not user.check_password(current_password):
+            messages.error(request, "Current password is incorrect")
+            return redirect('change_password')
+
+        if new_password != confirm_password:
+            messages.error(request, "New passwords do not match")
+            return redirect('change_password')
+
+        user.set_password(new_password)
+        user.save()
+
+
+        messages.success(request, "Password updated successfully")
+        return render(request, 'profile.html')
+
+    return JsonResponse({"error": "Invalid method"}, status=405)
