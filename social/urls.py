@@ -18,5 +18,9 @@ urlpatterns = [
    path("profile/", profile, name="profile"),
    path("update-profile/", update_admin_profile, name="update_profile"),
    path("change-password/", change_password, name="change_password"),
-   path("update-password/", update_password, name="update_password")
+   path("update-password/", update_password, name="update_password"),
+   path("edit-post/<int:post_id>", editpost, name="edit_post"),
+   path("submit-edit-post/<int:post_id>", submit_editpost, name="submit_edit_post")  # type: ignore
+   ,path("delete-post/<int:post_id>", del_post, name="delete_post"),
+   path("logout/", logout_view, name="logout")
 ]

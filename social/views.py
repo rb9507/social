@@ -15,6 +15,7 @@ from .models import Post
 from .models import Post, AffiliatePostAction
 from django.contrib.auth.decorators import login_required
 from utils.cloudConnect import upload_image_to_cloudinary    
+from django.contrib.auth import logout
 
 N8N_WEBHOOK_URL = "http://localhost:5678/webhook-test/social-post"
 #sending image
@@ -45,12 +46,34 @@ def send_image_to_n8n(image_url, caption,post_id):
         "n8n_response": response.text
     })
 
+def send_caption_to_n8n(caption):
+    payload = {
+        "caption": caption
+    }
+
+    try:
+        response = requests.post(
+            N8N_WEBHOOK_URL,
+            json=payload,
+            timeout=40
+        )
+    except requests.exceptions.RequestException as e:
+        return JsonResponse({
+            "success": False,
+            "error": str(e)
+        }, status=500)
+
+    return JsonResponse({
+        "success": True,
+        "n8n_status": response.status_code,
+        "n8n_response": response.text
+    })
 
 
 def superAdmin(request):
     posts = Post.objects.order_by('-created_at')[:6]
     posts_count = Post.objects.count()
-    users = SuperAdmin.objects.count()
+    users = AffiliateProfile.objects.count()
 
     return render(
         request,
@@ -103,10 +126,11 @@ def auth_admin(request):
 
         user = authenticate(request, username=username, password=password)
         if user is None:
-            return JsonResponse({"success": False}, status=400)
+            messages.error(request, "Invalid username or password")
+            return redirect('log_admin')
 
         login(request, user)
-        return redirect('super_admin')  # URL of dashboard
+        return redirect('super_admin')  
 
     return JsonResponse({"error": "Invalid method"}, status=405)
 
@@ -137,10 +161,10 @@ def post_submitted(request):
                 "message": "Only SuperAdmins can create posts"
             }, status=403)
 
-        # ✅ Upload FIRST
+
         image_url = upload_image_to_cloudinary(image)
 
-        # ✅ Then save post
+        
         post = Post.objects.create(
             image=image,   # optional if you want local storage
             caption=caption,
@@ -150,6 +174,7 @@ def post_submitted(request):
         post_id = post.id # type: ignore
         print("Post created with ID:", post_id)
         print("Image uploaded to Cloudinary:", image_url)
+        
 
     return JsonResponse({"error": "Invalid method"}, status=405)
 
@@ -287,3 +312,27 @@ def update_password(request):
         return render(request, 'profile.html')
 
     return JsonResponse({"error": "Invalid method"}, status=405)
+
+def editpost(request,post_id):
+    post=Post.objects.get(id=post_id)
+    return render(request, 'editpost.html', {'post': post})
+
+def submit_editpost(request,post_id):
+    if request.method == "POST":
+        caption = request.POST.get("caption")
+        post=Post.objects.get(id=post_id)
+        post.caption=caption
+        post.save()
+        send_caption_to_n8n(caption)
+        #messages.success(request, "Post updated successfully")
+        return redirect('posts_list')
+    
+def del_post(request,post_id):
+    post=Post.objects.get(id=post_id)
+    post.delete()
+    #messages.success(request, "Post deleted successfully")
+    return redirect('posts_list')
+
+def logout_view(request):
+    logout(request)
+    return redirect('log_admin')
