@@ -20,7 +20,8 @@ class Post(models.Model):
 
 #affiliated user regestration  for  storing in database
 class AffiliateProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    username = models.CharField(max_length=150,unique=True)
+    password = models.CharField(max_length=255,unique=True)
 
     instagram_secret = models.CharField(max_length=255)
     linkedin_secret = models.CharField(max_length=255)
@@ -30,46 +31,61 @@ class AffiliateProfile(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.user.username
-
-
-    
-#Affiliated user login for storing data in database
-
-class AffiliateLogin(models.Model):
-    username = models.CharField(max_length=150)
-    password = models.CharField(max_length=255)  # HASHED password
-    login_time = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
         return self.username
-
-#Affiliated userdashboard for storing data in database....
-# Super Admin Posts
-# class AdminPost(models.Model):
-#     caption = models.CharField(max_length=200)
-#     description = models.TextField()
-#     image = models.ImageField(upload_to='posts/')
-#     created_at = models.DateTimeField(auto_now_add=True)
-
-#     def __str__(self):
-#         return self.caption
-
-# Affiliate Actions on Posts
-class AffiliatePostAction(models.Model):
-    affiliate_username = models.CharField(max_length=150)
+    
+class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
-    action = models.CharField(
-        max_length=20,
-        choices = [
-            ('like','Like'),
-            ('share','Share'),
-            ('comment','Comment')
-        ]
-    )
-    comment_text = models.TextField(blank=True, null=True)
+    affiliate = models.ForeignKey(AffiliateProfile, on_delete=models.CASCADE)
+    text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.affiliate_username} - {self.action}"
+        return f"Comment by {self.affiliate.username} on Post {self.post.id}"
+    
+
+class Like(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    affiliate = models.ForeignKey(AffiliateProfile, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('post', 'affiliate')
+    def __str__(self):
+        return f"Like by {self.affiliate.username} on Post {self.post.id}"
+    
+
+class Share(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    affiliate = models.ForeignKey(AffiliateProfile, on_delete=models.CASCADE)
+    platform = models.CharField(
+        max_length=20,
+        choices=[
+            ('instagram', 'Instagram'),
+            ('linkedin', 'LinkedIn'),
+            ('facebook', 'Facebook'),
+            ('twitter', 'Twitter'),
+        ]
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Share by {self.affiliate.username} on {self.platform}"
+
+
+# class AffiliatePostAction(models.Model):
+#     affiliate_username = models.CharField(max_length=150)
+#     post = models.ForeignKey(Post, on_delete=models.CASCADE)
+#     action = models.CharField(
+#         max_length=20,
+#         choices = [
+#             ('like','Like'),
+#             ('share','Share'),
+#             ('comment','Comment')
+#         ]
+#     )
+#     comment_text = models.TextField(blank=True, null=True)
+#     created_at = models.DateTimeField(auto_now_add=True)
+
+#     def __str__(self):
+#         return f"{self.affiliate_username} - {self.action}"
 

@@ -27,9 +27,8 @@
     <div class="login-box">
       <h3 class="text-center mb-4">Affiliate Login</h3>
 
-      <form action="/login/" method="post">
-        {% csrf_token %}
-
+      <form method="POST" action="{% url 'affiliate_login' %}">
+       {% csrf_token %}
 
         <div class="mb-3">
           <label class="form-label">Username</label>
