@@ -44,11 +44,10 @@ urlpatterns = [
    path("change-password/", change_password, name="change_password"),
    path("update-password/", update_password, name="update_password"),
    path("edit-post/<int:post_id>", editpost, name="edit_post"),
-   path("submit-edit-post/<int:post_id>", submit_editpost, name="submit_edit_post"),
+   path("submit-edit-post/<int:post_id>", submit_editpost, name="submit_edit_post"), # type: ignore
    path("delete-post/<int:post_id>", del_post, name="delete_post"),
-   path("logout/", logout_view, name="logout")
-   path("submit-edit-post/<int:post_id>", submit_editpost, name="submit_edit_post")  # type: ignore
-   ,path("delete-post/<int:post_id>", del_post, name="delete_post"),
+   path("logout/", logout_view, name="logout"),
+   path("delete-post/<int:post_id>", del_post, name="delete_post"),
    path("logout/", logout_view, name="logout"),
    path("webhoook/n8n/media/", store_media_id, name="n8n_webhook_media")
 ]
