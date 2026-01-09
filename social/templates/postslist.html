@@ -65,8 +65,8 @@
             <div class="card-body">
               <h5 class="card-title">New Product Launch</h5>
               <p class="card-text">{{ post.caption }}</p>
-              <a href="#" class="btn btn-primary btn-sm">Edit</a>
-              <a href="#" class="btn btn-danger btn-sm">Delete</a>
+              <a href="{% url 'edit_post' post.id %}" class="btn btn-primary btn-sm">Edit</a>
+              <a href="{% url 'delete_post' post.id %}" class="btn btn-danger btn-sm">Delete</a>
             </div>
           </div>
         </div>
