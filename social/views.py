@@ -24,6 +24,7 @@ from .models import Post, Like, Comment, Share, AffiliateProfile
 
 from utils.cloudConnect import upload_image_to_cloudinary    
 from django.contrib.auth import logout
+import json
 
 N8N_WEBHOOK_URL = "http://localhost:5678/webhook-test/social-post"
 #sending image
@@ -753,3 +754,30 @@ def del_post(request,post_id):
 def logout_view(request):
     logout(request)
     return redirect('log_admin')
+
+@csrf_exempt
+def store_media_id(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=405)
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    media_id = data.get("media_id")
+    caption = data.get("caption", "")
+    post_id = data.get("post_id")
+
+    if not media_id:
+        return JsonResponse({"error": "media_id is required"}, status=400)
+
+    post=Post.objects.get(id=post_id)
+    post.imediaid = media_id
+    post.caption = caption
+
+    return JsonResponse({
+        "success": True,
+        "caption": caption,
+        "media_id": post.imediaid
+    })
