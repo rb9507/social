@@ -19,7 +19,8 @@ from .models import Like, Post, AffiliateProfile
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from .models import *
-
+from django.shortcuts import get_object_or_404
+from .models import Post, Like, Comment, Share, AffiliateProfile
 
 N8N_WEBHOOK_URL = "http://localhost:5678/webhook-test/social-post"
 #sending image
@@ -266,8 +267,6 @@ def share_post(request):
     Share.objects.create(affiliate = affiliate,post=post,platform=platform)
     return JsonResponse({"status":"success"})
 
-
-
 def affiliate_dashboard(request):
     posts = Post.objects.all().order_by("-created_at")
     return render(request, 'affiliate_userdashboard.html',{'posts': posts})
@@ -284,13 +283,9 @@ def affiliate_dashboard(request):
 #          )
 #          return JsonResponse({'status': 'success'})
 
-
-
 def posts_list(request):
      posts = Post.objects.all().order_by('-created_at')
      return render(request, 'postslist.html', {'posts': posts})
-
-
 
 # def affiliate_dashboard(request):
 #     if not request.session.get('affiliate_id'):
@@ -303,3 +298,336 @@ def posts_list(request):
 #         "affiliate_userdashboard.html",
 #         {"posts": posts}
 #     )
+# LIKE POST
+@require_POST
+def like_post(request):
+    affiliate_id = request.session.get("affiliate_id")
+
+    if not affiliate_id:
+        return JsonResponse(
+            {"error": "Affiliate not logged in"},
+            status=403
+        )
+
+    post_id = request.POST.get("post_id")
+
+    if not post_id:
+        return JsonResponse(
+            {"error": "Post ID missing"},
+            status=400
+        )
+
+    affiliate = get_object_or_404(AffiliateProfile, id=affiliate_id)
+    post = get_object_or_404(Post, id=post_id)
+
+    like, created = Like.objects.get_or_create(
+        affiliate=affiliate,
+        post=post
+    )
+
+    if not created:
+        return JsonResponse({
+            "status": "already_liked",
+            "message": "You already liked this post"
+        })
+
+    return JsonResponse({
+        "status": "success",
+        "message": "Post liked successfully"
+    })
+
+
+
+# COMMENT POST
+@require_POST
+def comment_post(request):
+    affiliate_id = request.session.get("affiliate_id")
+
+    if not affiliate_id:
+        return JsonResponse(
+            {"error": "Affiliate not logged in"},
+            status=403
+        )
+
+    post_id = request.POST.get("post_id")
+    comment_text = request.POST.get("comment_text")
+
+    if not post_id or not comment_text:
+        return JsonResponse(
+            {"error": "Post ID or comment missing"},
+            status=400
+        )
+
+    affiliate = get_object_or_404(AffiliateProfile, id=affiliate_id)
+    post = get_object_or_404(Post, id=post_id)
+
+    Comment.objects.create(
+        affiliate=affiliate,
+        post=post,
+        text=comment_text
+    )
+
+    return JsonResponse({
+        "status": "success",
+        "message": "Comment added successfully"
+    })
+
+
+# SHARE POST
+@require_POST
+def share_post(request):
+    affiliate_id = request.session.get("affiliate_id")
+
+    if not affiliate_id:
+        return JsonResponse(
+            {"error": "Affiliate not logged in"},
+            status=403
+        )
+
+    post_id = request.POST.get("post_id")
+    platform = request.POST.get("platform")
+
+    if not post_id or not platform:
+        return JsonResponse(
+            {"error": "Post ID or platform missing"},
+            status=400
+        )
+
+    affiliate = get_object_or_404(AffiliateProfile, id=affiliate_id)
+    post = get_object_or_404(Post, id=post_id)
+
+    Share.objects.create(
+        affiliate=affiliate,
+        post=post,
+        platform=platform
+    )
+
+    return JsonResponse({
+        "status": "success",
+        "message": "Post shared successfully"
+    })
+
+# #Affiliate user settings and profile management
+# from django.shortcuts import render, redirect, get_object_or_404
+# from django.contrib import messages
+# from django.http import JsonResponse
+# from django.views.decorators.http import require_POST
+# from django.contrib.auth.hashers import check_password, make_password
+# from .models import AffiliateProfile
+
+
+# # =========================
+# # AFFILIATE PROFILE VIEW
+# # =========================
+# def affiliate_profile(request):
+#     affiliate_id = request.session.get('affiliate_id')
+
+#     if not affiliate_id:
+#         return redirect('affiliate_login')
+
+#     affiliate = get_object_or_404(AffiliateProfile, id=affiliate_id)
+
+#     return render(
+#         request,
+#         'affiliate_profile.html',
+#         {'affiliate': affiliate}
+#     )
+
+
+# # =========================
+# # UPDATE AFFILIATE PROFILE
+# # =========================
+# @require_POST
+# def update_affiliate_profile(request):
+#     affiliate_id = request.session.get('affiliate_id')
+
+#     if not affiliate_id:
+#         return redirect('affiliate_login')
+
+#     affiliate = get_object_or_404(AffiliateProfile, id=affiliate_id)
+
+#     affiliate.username = request.POST.get('username', affiliate.username)
+
+#     # Update secrets only if provided
+#     instagram_secret = request.POST.get('instagram_secret')
+#     facebook_secret = request.POST.get('facebook_secret')
+#     linkedin_secret = request.POST.get('linkedin_secret')
+#     twitter_secret = request.POST.get('twitter_secret')
+
+#     if instagram_secret:
+#         affiliate.instagram_secret = make_password(instagram_secret)
+#     if facebook_secret:
+#         affiliate.facebook_secret = make_password(facebook_secret)
+#     if linkedin_secret:
+#         affiliate.linkedin_secret = make_password(linkedin_secret)
+#     if twitter_secret:
+#         affiliate.twitter_secret = make_password(twitter_secret)
+
+#     affiliate.save()
+
+#     messages.success(request, "Profile updated successfully")
+#     return redirect('settings')
+
+
+# # =========================
+# # CHANGE AFFILIATE PASSWORD
+# # =========================
+# @require_POST
+# def change_affiliate_password(request):
+#     affiliate_id = request.session.get('affiliate_id')
+
+#     if not affiliate_id:
+#         return redirect('affiliate_login')
+
+#     affiliate = get_object_or_404(AffiliateProfile, id=affiliate_id)
+
+#     old_password = request.POST.get('old_password')
+#     new_password = request.POST.get('new_password')
+#     confirm_password = request.POST.get('confirm_password')
+
+#     if not check_password(old_password, affiliate.password):
+#         messages.error(request, "Old password is incorrect")
+#         return redirect('settings')
+
+#     if new_password != confirm_password:
+#         messages.error(request, "Passwords do not match")
+#         return redirect('settings')
+
+#     affiliate.password = make_password(new_password)
+#     affiliate.save()
+
+#     messages.success(request, "Password changed successfully")
+#     return redirect('settings')
+
+
+# def affiliate_feed(request):
+#     if not request.session.get('affiliate_id'):
+#         return redirect('affiliate_login')
+
+#     posts = Post.objects.all().order_by('-created_at')
+
+#     return render(
+#         request,
+#         'affiliate_userdashboard.html',
+#         {'posts': posts}
+#     )
+
+# def affiliate_logout(request):
+#     request.session.flush()
+#     return redirect('affiliate_login')
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.views.decorators.http import require_POST
+from django.contrib.auth.hashers import check_password, make_password
+
+from .models import AffiliateProfile, Post
+
+
+# =========================
+# AFFILIATE FEED
+# =========================
+def affiliate_feed(request):
+    if not request.session.get('affiliate_id'):
+        return redirect('affiliate_login')
+
+    posts = Post.objects.all().order_by('-created_at')
+    return render(request, 'affiliate_userdashboard.html', {'posts': posts})
+
+
+# =========================
+# SETTINGS PAGE
+# =========================
+def settings(request):
+    affiliate_id = request.session.get('affiliate_id')
+    if not affiliate_id:
+        return redirect('affiliate_login')
+
+    affiliate = get_object_or_404(AffiliateProfile, id=affiliate_id)
+    return render(request, 'settings.html', {'affiliate': affiliate})
+
+
+# =========================
+# AFFILIATE PROFILE PAGE
+# =========================
+def affiliate_profile(request):
+    affiliate_id = request.session.get('affiliate_id')
+    if not affiliate_id:
+        return redirect('affiliate_login')
+
+    affiliate = get_object_or_404(AffiliateProfile, id=affiliate_id)
+    return render(request, 'affiliate_profile.html', {'affiliate': affiliate})
+
+
+# =========================
+# UPDATE PROFILE (POST)
+# =========================
+@require_POST
+def update_affiliate_profile(request):
+    affiliate = get_object_or_404(
+        AffiliateProfile,
+        id=request.session.get('affiliate_id')
+    )
+
+    affiliate.username = request.POST.get('username')
+
+    if request.POST.get('instagram_secret'):
+        affiliate.instagram_secret = make_password(request.POST.get('instagram_secret'))
+    if request.POST.get('facebook_secret'):
+        affiliate.facebook_secret = make_password(request.POST.get('facebook_secret'))
+    if request.POST.get('linkedin_secret'):
+        affiliate.linkedin_secret = make_password(request.POST.get('linkedin_secret'))
+    if request.POST.get('twitter_secret'):
+        affiliate.twitter_secret = make_password(request.POST.get('twitter_secret'))
+
+    affiliate.save()
+    messages.success(request, "Profile updated successfully")
+    return redirect('settings')
+
+
+# =========================
+# CHANGE PASSWORD (POST)
+# =========================
+@require_POST
+def change_affiliate_password(request):
+    affiliate = get_object_or_404(
+        AffiliateProfile,
+        id=request.session.get('affiliate_id')
+    )
+
+    if not check_password(request.POST.get('old_password'), affiliate.password):
+        messages.error(request, "Old password is incorrect")
+        return redirect('affiliate_profile')
+
+    if request.POST.get('new_password') != request.POST.get('confirm_password'):
+        messages.error(request, "Passwords do not match")
+        return redirect('affiliate_profile')
+
+    affiliate.password = make_password(request.POST.get('new_password'))
+    affiliate.save()
+
+    messages.success(request, "Password changed successfully")
+    return redirect('settings')
+
+
+# =========================
+# LOGOUT
+# =========================
+def affiliate_logout(request):
+    request.session.flush()
+    return redirect('affiliate_login')
+def edit_affiliate_profile(request):
+    affiliate_id = request.session.get('affiliate_id')
+    if not affiliate_id:
+        return redirect('affiliate_login')
+
+    affiliate = get_object_or_404(AffiliateProfile, id=affiliate_id)
+    return render(request, 'edit_affiliate_profile.html', {'affiliate': affiliate})
+
+
+def change_password_page(request):
+    affiliate_id = request.session.get('affiliate_id')
+    if not affiliate_id:
+        return redirect('affiliate_login')
+
+    return render(request, 'change_password.html')

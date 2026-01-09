@@ -1,7 +1,10 @@
+from django import views
 from django.contrib import admin
 from django.urls import path
 from .views import *
 from .views import affiliate_register   
+
+from . import views   
 
 urlpatterns = [
    path("upload-image/", send_image_to_n8n, name="upload_image"),
@@ -19,5 +22,25 @@ urlpatterns = [
    path("like/",Like_post,name="Like_post"),
    path("comment/",comment_post,name="comment_post"),
    path("share/",share_post,name="share_post"),
+   #path('like-post/', views.Like_post, name='like_post'),
+   path('like-post/',views.like_post,name='like_post'),
+   path('comment-post/', views.comment_post, name='comment_post'),
+   path('share-post/', views.share_post, name='share_post'),
+   path('affiliate-feed/', views.affiliate_feed, name='affiliate_feed'),
+   path('settings/', views.settings, name='settings'), 
+   #path('affiliate-logout/', views.affiliate_logout, name='affiliate_logout'),
+   path('edit-profile/', views.edit_affiliate_profile, name='edit_affiliate_profile'),
+   path('change-password/', views.change_password_page, name='change_password_page'),
 
+
+
+   path('update-profile/', views.update_affiliate_profile, name='update_affiliate_profile'),
+   path('update-password/', views.change_affiliate_password, name='change_affiliate_password'),
+   path('logout/', views.affiliate_logout, name='affiliate_logout'),
 ]
+
+
+
+
+
+
