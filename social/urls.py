@@ -32,11 +32,24 @@ urlpatterns = [
    path('edit-profile/', views.edit_affiliate_profile, name='edit_affiliate_profile'),
    path('change-password/', views.change_password_page, name='change_password_page'),
 
+<<<<<<< HEAD
 
 
    path('update-profile/', views.update_affiliate_profile, name='update_affiliate_profile'),
    path('update-password/', views.change_affiliate_password, name='change_affiliate_password'),
    path('logout/', views.affiliate_logout, name='affiliate_logout'),
+=======
+   path("users/", affiliate_users, name="affiliate_users"),
+   path("settings/", setting, name="settings"),
+   path("profile/", profile, name="profile"),
+   path("update-profile/", update_admin_profile, name="update_profile"),
+   path("change-password/", change_password, name="change_password"),
+   path("update-password/", update_password, name="update_password"),
+   path("edit-post/<int:post_id>", editpost, name="edit_post"),
+   path("submit-edit-post/<int:post_id>", submit_editpost, name="submit_edit_post")  # type: ignore
+   ,path("delete-post/<int:post_id>", del_post, name="delete_post"),
+   path("logout/", logout_view, name="logout")
+>>>>>>> 8b6271dd051d75794b9337035e2fcad255ef64ff
 ]
 
 

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% extends "affiliate_base.html" %}
 
 {% block title %}Settings{% endblock %}
@@ -66,8 +67,31 @@
 
         </div>
 
+=======
+{% extends "base.html" %}
+
+{% block title %}Settings{% endblock %}
+
+{% block content %} 
+
+<div class="row align-items-center py-2 px-3 border-bottom">
+    <div class="col-auto">
+        <i class="bi bi-person-circle fs-4 text-primary"></i>
+    </div>
+
+    <div class="col">
+        <a href="{% url 'profile' %}" class="h5 mb-0 text-decoration-none text-dark">Profile </a>
+        <small class="text-muted">{{ request.user.username }}</small>
+    </div>
+
+    <div class="col-auto">
+      
+>>>>>>> 8b6271dd051d75794b9337035e2fcad255ef64ff
     </div>
 </div>
 
 {% endblock %}
+<<<<<<< HEAD
 
+=======
+>>>>>>> 8b6271dd051d75794b9337035e2fcad255ef64ff
