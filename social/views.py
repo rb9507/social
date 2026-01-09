@@ -19,14 +19,11 @@ from .models import Like, Post, AffiliateProfile
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from .models import *
-<<<<<<< HEAD
 from django.shortcuts import get_object_or_404
 from .models import Post, Like, Comment, Share, AffiliateProfile
-=======
 
 from utils.cloudConnect import upload_image_to_cloudinary    
 from django.contrib.auth import logout
->>>>>>> 8b6271dd051d75794b9337035e2fcad255ef64ff
 
 N8N_WEBHOOK_URL = "http://localhost:5678/webhook-test/social-post"
 #sending image
@@ -326,7 +323,6 @@ def posts_list(request):
 #         "affiliate_userdashboard.html",
 #         {"posts": posts}
 #     )
-<<<<<<< HEAD
 # LIKE POST
 @require_POST
 def like_post(request):
@@ -660,7 +656,6 @@ def change_password_page(request):
         return redirect('affiliate_login')
 
     return render(request, 'change_password.html')
-=======
 # Affiliate post action
 
 def affiliate_post_actoion(request):
@@ -758,4 +753,3 @@ def del_post(request,post_id):
 def logout_view(request):
     logout(request)
     return redirect('log_admin')
->>>>>>> 8b6271dd051d75794b9337035e2fcad255ef64ff
