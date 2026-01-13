@@ -434,7 +434,7 @@ def affiliate_feed(request):
 # =========================
 # SETTINGS PAGE
 # =========================
-def settings(request):
+def afflilate_settings(request):
     affiliate_id = request.session.get('affiliate_id')
     if not affiliate_id:
         return redirect('affiliate_login')
@@ -512,6 +512,7 @@ def change_affiliate_password(request):
 def affiliate_logout(request):
     request.session.flush()
     return redirect('affiliate_login')
+
 def edit_affiliate_profile(request):
     affiliate_id = request.session.get('affiliate_id')
     if not affiliate_id:

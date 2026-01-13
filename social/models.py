@@ -40,7 +40,7 @@ class Comment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Comment by {self.affiliate.username} on Post {self.post.id}"
+        return f"Comment by {self.affiliate.username} on Post {self.post.id}" # type: ignore
     
 
 class Like(models.Model):
@@ -51,7 +51,7 @@ class Like(models.Model):
     class Meta:
         unique_together = ('post', 'affiliate')
     def __str__(self):
-        return f"Like by {self.affiliate.username} on Post {self.post.id}"
+        return f"Like by {self.affiliate.username} on Post {self.post.id}"  # type: ignore
     
 
 class Share(models.Model):

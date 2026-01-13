@@ -1,8 +1,7 @@
 from django import views
 from django.contrib import admin
 from django.urls import path
-from .views import *
-from .views import affiliate_register   
+from .views import *  
 
 from . import views   
 
@@ -27,7 +26,7 @@ urlpatterns = [
    path('comment-post/', views.comment_post, name='comment_post'),
    path('share-post/', views.share_post, name='share_post'),
    path('affiliate-feed/', views.affiliate_feed, name='affiliate_feed'),
-   path('settings/', views.settings, name='settings'), 
+   path('user/settings/', views.afflilate_settings, name='affliatesettings'), 
    #path('affiliate-logout/', views.affiliate_logout, name='affiliate_logout'),
    path('edit-profile/', views.edit_affiliate_profile, name='edit_affiliate_profile'),
    path('change-password/', views.change_password_page, name='change_password_page'),
@@ -36,7 +35,7 @@ urlpatterns = [
 
    path('update-profile/', views.update_affiliate_profile, name='update_affiliate_profile'),
    path('update-password/', views.change_affiliate_password, name='change_affiliate_password'),
-   path('logout/', views.affiliate_logout, name='affiliate_logout'),
+   path('user/logout/', views.affiliate_logout, name='affiliate_logout'),
    path("users/", affiliate_users, name="affiliate_users"),
    path("settings/", setting, name="settings"),
    path("profile/", profile, name="profile"),
@@ -48,7 +47,6 @@ urlpatterns = [
    path("delete-post/<int:post_id>", del_post, name="delete_post"),
    path("logout/", logout_view, name="logout"),
    path("delete-post/<int:post_id>", del_post, name="delete_post"),
-   path("logout/", logout_view, name="logout"),
    path("webhoook/n8n/media/", store_media_id, name="n8n_webhook_media")
 ]
 
