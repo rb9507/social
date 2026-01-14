@@ -17,9 +17,9 @@ class Post(models.Model):
     fbpostid=models.CharField(max_length=300, blank=True, null=True)
     lnpostid=models.CharField(max_length=300, blank=True, null=True)
 
-    fbtoken=models.TextField(blank=True, null=True)
-    instatoken=models.TextField(blank=True, null=True)
-    lntoken=models.TextField(blank=True, null=True)
+    fbtoken=models.CharField(max_length=300,blank=True, null=True)
+    instatoken=models.CharField(max_length=300,blank=True, null=True)
+    lntoken=models.CharField(max_length=300,blank=True, null=True)
 
     def __str__(self):
         return f"Post  - {self.caption[:20]}"

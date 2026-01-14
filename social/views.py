@@ -678,7 +678,11 @@ def submit_editpost(request,post_id):
     
 def del_post(request,post_id):
     post=Post.objects.get(id=post_id)
+    delete_facebook_post(post.fbpostid, post.fbtoken)
+    delete_instagram_post(post.instapostid, post.instatoken)       
+    delete_linkedin_post(post.lnpostid, post.lntoken)
     post.delete()
+    print("Posts deleted successfully")
     return redirect('posts_list')
 
 def logout_view(request):
@@ -715,15 +719,12 @@ def collect_post_data(request):
         match platform:
             case "facebook":
                 pst.fbpostid=post.get("post_id")
-                pst.fbtoken=post.get("access_token")
                 pst.save()
             case "instagram":
                 pst.instapostid=post.get("post_id")
-                pst.instatoken=post.get("access_token")
                 pst.save()
             case "linkedin":
                 pst.lnpostid=post.get("post_id")
-                pst.lntoken=post.get("access_token")
                 pst.save()
 
     return JsonResponse(
