@@ -61,10 +61,6 @@
       <h3 class="mb-4">Posts from Super Admin</h3>
 
       <div class="row">
-<<<<<<< HEAD
-
-=======
->>>>>>> 2d88d3fa4fa7daa3c8cf71914c64cc534fd1b187
         {% for post in posts %}
         <div class="col-md-4">
           <div class="card post-card shadow-sm mb-4">
@@ -74,15 +70,7 @@
             {% endif %}
 
             <div class="card-body">
-<<<<<<< HEAD
-              <h5 class="card-title">Post</h5>
-
-              <p class="card-text">
-                {{ post.caption }}
-              </p>
-=======
               <p class="card-text">{{ post.caption }}</p>
->>>>>>> 2d88d3fa4fa7daa3c8cf71914c64cc534fd1b187
 
               <small class="text-muted">
                 {{ post.created_at|date:"d M Y" }}
@@ -91,15 +79,6 @@
               <hr>
 
               <div class="d-flex justify-content-between">
-<<<<<<< HEAD
-                <button class="btn btn-outline-primary btn-sm">
-                  <i class="bi bi-hand-thumbs-up"></i> Like
-                </button>
-                <button class="btn btn-outline-success btn-sm">
-                  <i class="bi bi-share"></i> Share
-                </button>
-                <button class="btn btn-outline-secondary btn-sm">
-=======
                 <button
                   class="btn btn-outline-primary btn-sm like-btn"
                   data-post-id="{{ post.id }}">
@@ -115,7 +94,6 @@
                 <button
                   class="btn btn-outline-secondary btn-sm comment-btn"
                   data-post-id="{{ post.id }}">
->>>>>>> 2d88d3fa4fa7daa3c8cf71914c64cc534fd1b187
                   <i class="bi bi-chat"></i> Comment
                 </button>
               </div>
@@ -126,10 +104,6 @@
         {% empty %}
           <p>No posts available.</p>
         {% endfor %}
-<<<<<<< HEAD
-
-=======
->>>>>>> 2d88d3fa4fa7daa3c8cf71914c64cc534fd1b187
       </div>
     </div>
 
@@ -449,7 +423,7 @@ document.querySelectorAll('.share-btn').forEach(btn => {
         <i class="bi bi-house-door me-2"></i> Feed
       </a>
 
-      <a href="{% url 'settings' %}">
+      <a href="{% url 'usersettings' %}">
         <i class="bi bi-gear me-2"></i> Settings
       </a>
 

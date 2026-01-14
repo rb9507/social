@@ -9,15 +9,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
-<<<<<<< HEAD
-#from .models import AffiliateLogin
 from django.db import models
 from .models import Post
-#from .models import Post, AffiliatePostAction
-=======
-from django.db import models
-from .models import Post
->>>>>>> 2d88d3fa4fa7daa3c8cf71914c64cc534fd1b187
 from django.contrib.auth.decorators import login_required
 from utils.cloudConnect import upload_image_to_cloudinary   
 from .models import Like, Post, AffiliateProfile
@@ -26,10 +19,6 @@ from django.http import JsonResponse
 from .models import *
 from django.shortcuts import get_object_or_404
 from .models import Post, Like, Comment, Share, AffiliateProfile
-<<<<<<< HEAD
-
-=======
->>>>>>> 2d88d3fa4fa7daa3c8cf71914c64cc534fd1b187
 from utils.cloudConnect import upload_image_to_cloudinary    
 from django.contrib.auth import logout
 from django.contrib.auth.hashers import check_password
@@ -47,12 +36,41 @@ from .models import AffiliateProfile, Post
 N8N_WEBHOOK_URL = "http://localhost:5678/webhook-test/social-post"
 #sending image
 
+N8N_Image_Url="http://localhost:5678/webhook-test/image-url"
+
+def send_imageurl(image_url) :
+    payload = {
+        "image_url": image_url
+    }
+
+    try:
+        response = requests.post(
+            N8N_Image_Url,
+            json=payload,
+            timeout=40
+        )
+        print("Payload sent to N8N:", payload)
+    except requests.exceptions.RequestException as e:
+        return JsonResponse({
+            "success": False,
+            "error": str(e)
+        }, status=500)
+
+    print("N8N Response:", response.text)
+    return JsonResponse({
+        "success": True,
+        "n8n_status": response.status_code,
+        "n8n_response": response.text
+    })
+
 def send_image_to_n8n(image_url, caption,post_id):
+    
     payload = {
         "image_url": image_url,
         "caption": caption,
         "post_id": post_id
     }
+
 
     try:
         response = requests.post(
@@ -60,12 +78,14 @@ def send_image_to_n8n(image_url, caption,post_id):
             json=payload,
             timeout=40
         )
+        print("Payload sent to N8N:", payload)
     except requests.exceptions.RequestException as e:
         return JsonResponse({
             "success": False,
             "error": str(e)
         }, status=500)
 
+    print("N8N Response:", response.text)
     return JsonResponse({
         "success": True,
         "n8n_status": response.status_code,
@@ -168,6 +188,7 @@ def create_post(request):
 
 
 def post_submitted(request):
+    print("Post submission received")
     if request.method == "POST":
         image = request.FILES.get("post_image")
         caption = request.POST.get("post_text")
@@ -197,13 +218,14 @@ def post_submitted(request):
             caption=caption,
             created_by=super_admin
         )
-
+         # type: ignore
         post_id = post.id # type: ignore
         print("Post created with ID:", post_id)
         print("Image uploaded to Cloudinary:", image_url)
-        
-
-    return JsonResponse({"error": "Invalid method"}, status=405)
+        send_imageurl(image_url)
+        return send_image_to_n8n(image_url, caption,post.id) # type: ignore
+    else:
+        JsonResponse({"error": "Invalid method"}, status=405)
 
 
 #affiliate user regestration
@@ -260,12 +282,7 @@ def affiliate_login(request):
             return redirect('affiliate_login')
 
         if check_password(password, affiliate.password):
-<<<<<<< HEAD
-            # ✅ store affiliate id in session
-            request.session['affiliate_id'] = affiliate.id   # type: ignore
-=======
-            request.session['affiliate_id'] = affiliate.id
->>>>>>> 2d88d3fa4fa7daa3c8cf71914c64cc534fd1b187
+            request.session['affiliate_id'] = affiliate.id # type: ignore
             request.session['affiliate_username'] = affiliate.username
 
             return redirect('affiliate_dashboard')  # REDIRECT HERE
@@ -289,11 +306,7 @@ def affiliate_dashboard(request):
         {'posts': posts}
     )
 
-<<<<<<< HEAD
-def Like_post(request):
-=======
 def like_post(request):
->>>>>>> 2d88d3fa4fa7daa3c8cf71914c64cc534fd1b187
     affiliate_id = request.session.get("affiliate_id")
     post_id = request.POST.get("post_id")
     affiliate = AffiliateProfile.objects.get(id=affiliate_id)
@@ -301,25 +314,6 @@ def like_post(request):
     Like.objects.get_or_create(affiliate = affiliate,post=post)
     return JsonResponse({"status":"success"})
 
-<<<<<<< HEAD
-# def comment_post(request):
-#     affiliate_id = request.session.get("affiliate_id")
-#     post_id = request.POST.get("post_id")
-#     comment_text = request.POST.get("comment_text")
-#     affiliate = AffiliateProfile.objects.get(id=affiliate_id)
-#     post = Post.objects.get(id=post_id)
-#     Comment.objects.create(affiliate = affiliate,post=post,text=comment_text)
-#     return JsonResponse({"status":"succcess"})
-
-# def share_post(request):
-#     affiliate_id = request.session.get("affiliate_id")
-#     post_id = request.POST.get("post_id")
-#     platform = request.POST.get("platform")
-#     affiliate = AffiliateProfile.objects.get(id=affiliate_id)
-#     post = Post.objects.get(id=post_id)
-#     Share.objects.create(affiliate = affiliate,post=post,platform=platform)
-#     return JsonResponse({"status":"success"})
-=======
 def comment_post(request):
     affiliate_id = request.session.get("affiliate_id")
     post_id = request.POST.get("post_id")
@@ -338,12 +332,6 @@ def share_post(request):
     Share.objects.create(affiliate = affiliate,post=post,platform=platform)
     return JsonResponse({"status":"success"})
 
-
-
-#from super amdin side
-def posts_list(request):
-     posts = Post.objects.all().order_by('-created_at')
-     return render(request, 'postslist.html', {'posts': posts})
 
 #for affiliate regestration side
 @require_POST
@@ -455,14 +443,6 @@ def affiliate_share_post(request):
     })
 
 
-# AFFILIATE FEED
-def affiliate_feed(request):
-    if not request.session.get('affiliate_id'):
-        return redirect('affiliate_login')
-
-    posts = Post.objects.all().order_by('-created_at')
-    return render(request, 'affiliate_userdashboard.html', {'posts': posts})
-
 
 
 #  AFFILIATE SETTINGS PAGE
@@ -476,13 +456,13 @@ def usersettings(request):
 
 
 # AFFILIATE PROFILE PAGE
-def affiliate_profile(request):
-    affiliate_id = request.session.get('affiliate_id')
-    if not affiliate_id:
-        return redirect('affiliate_login')
+# def affiliate_profile(request):
+#     affiliate_id = request.session.get('affiliate_id')
+#     if not affiliate_id:
+#         return redirect('affiliate_login')
 
-    affiliate = get_object_or_404(AffiliateProfile, id=affiliate_id)
-    return render(request, 'affiliate_profile.html', {'affiliate': affiliate})
+#     affiliate = get_object_or_404(AffiliateProfile, id=affiliate_id)
+#     return render(request, 'affiliate_profile.html', {'affiliate': affiliate})
 
 #UPDATE AFFILIATE PROFILE (POST)
 @require_POST
@@ -547,151 +527,28 @@ def change_affiliate_password(request):
 def affiliate_logout(request):
     request.session.flush()
     return redirect('affiliate_login')
-def edit_affiliate_profile(request):
-    affiliate_id = request.session.get('affiliate_id')
-    if not affiliate_id:
-        return redirect('affiliate_login')
-
-    affiliate = get_object_or_404(AffiliateProfile, id=affiliate_id)
-    return render(request, 'edit_affiliate_profile.html', {'affiliate': affiliate})
 
 
-def change_password_page(request):
-    affiliate_id = request.session.get('affiliate_id')
-    if not affiliate_id:
-        return redirect('affiliate_login')
 
-    return render(request, 'change_password.html')
+
 
 # Affiliate post action
-def affiliate_post_actoion(request):
-    if request.method == "POST":
-         affiliate_post_actoion.objects.create(                         #Affiliate_post_action.objects
-             affiliate_username = request.Post.get('username'),
-             post_id = request.POST.get('post_id'),
-             action = request.POST.get('actio'),
-             comment_text = request.POST.get('comment','')
-         )
-         return JsonResponse({'status': 'success'})
+# def affiliate_post_actoion(request):
+#     if request.method == "POST":
+#          affiliate_post_actoion.objects.create(                         #Affiliate_post_action.objects
+#              affiliate_username = request.Post.get('username'),
+#              post_id = request.POST.get('post_id'),
+#              action = request.POST.get('actio'),
+#              comment_text = request.POST.get('comment','')
+#          )
+#          return JsonResponse({'status': 'success'})
     
->>>>>>> 2d88d3fa4fa7daa3c8cf71914c64cc534fd1b187
 
 
 #SUPER ADMIN SIDE 
 def posts_list(request):
      posts = Post.objects.all().order_by('-created_at')
      return render(request, 'postslist.html', {'posts': posts})
-
-
-# LIKE POST
-@require_POST
-def like_post(request):
-    affiliate_id = request.session.get("affiliate_id")
-
-    if not affiliate_id:
-        return JsonResponse(
-            {"error": "Affiliate not logged in"},
-            status=403
-        )
-
-    post_id = request.POST.get("post_id")
-
-    if not post_id:
-        return JsonResponse(
-            {"error": "Post ID missing"},
-            status=400
-        )
-
-    affiliate = get_object_or_404(AffiliateProfile, id=affiliate_id)
-    post = get_object_or_404(Post, id=post_id)
-
-    like, created = Like.objects.get_or_create(
-        affiliate=affiliate,
-        post=post
-    )
-
-    if not created:
-        return JsonResponse({
-            "status": "already_liked",
-            "message": "You already liked this post"
-        })
-
-    return JsonResponse({
-        "status": "success",
-        "message": "Post liked successfully"
-    })
-
-
-
-# COMMENT POST
-@require_POST
-def comment_post(request):
-    affiliate_id = request.session.get("affiliate_id")
-
-    if not affiliate_id:
-        return JsonResponse(
-            {"error": "Affiliate not logged in"},
-            status=403
-        )
-
-    post_id = request.POST.get("post_id")
-    comment_text = request.POST.get("comment_text")
-
-    if not post_id or not comment_text:
-        return JsonResponse(
-            {"error": "Post ID or comment missing"},
-            status=400
-        )
-
-    affiliate = get_object_or_404(AffiliateProfile, id=affiliate_id)
-    post = get_object_or_404(Post, id=post_id)
-
-    Comment.objects.create(
-        affiliate=affiliate,
-        post=post,
-        text=comment_text
-    )
-
-    return JsonResponse({
-        "status": "success",
-        "message": "Comment added successfully"
-    })
-
-
-# SHARE POST
-@require_POST
-def share_post(request):
-    affiliate_id = request.session.get("affiliate_id")
-
-    if not affiliate_id:
-        return JsonResponse(
-            {"error": "Affiliate not logged in"},
-            status=403
-        )
-
-    post_id = request.POST.get("post_id")
-    platform = request.POST.get("platform")
-
-    if not post_id or not platform:
-        return JsonResponse(
-            {"error": "Post ID or platform missing"},
-            status=400
-        )
-
-    affiliate = get_object_or_404(AffiliateProfile, id=affiliate_id)
-    post = get_object_or_404(Post, id=post_id)
-
-    Share.objects.create(
-        affiliate=affiliate,
-        post=post,
-        platform=platform
-    )
-
-    return JsonResponse({
-        "status": "success",
-        "message": "Post shared successfully"
-    })
-
 
 
 
@@ -730,63 +587,6 @@ def affiliate_profile(request):
     return render(request, 'affiliate_profile.html', {'affiliate': affiliate})
 
 
-# =========================
-# UPDATE PROFILE (POST)
-# =========================
-@require_POST
-def update_affiliate_profile(request):
-    affiliate = get_object_or_404(
-        AffiliateProfile,
-        id=request.session.get('affiliate_id')
-    )
-
-    affiliate.username = request.POST.get('username')
-
-    if request.POST.get('instagram_secret'):
-        affiliate.instagram_secret = make_password(request.POST.get('instagram_secret'))
-    if request.POST.get('facebook_secret'):
-        affiliate.facebook_secret = make_password(request.POST.get('facebook_secret'))
-    if request.POST.get('linkedin_secret'):
-        affiliate.linkedin_secret = make_password(request.POST.get('linkedin_secret'))
-    if request.POST.get('twitter_secret'):
-        affiliate.twitter_secret = make_password(request.POST.get('twitter_secret'))
-
-    affiliate.save()
-    messages.success(request, "Profile updated successfully")
-    return redirect('settings')
-
-
-# =========================
-# CHANGE PASSWORD (POST)
-# =========================
-@require_POST
-def change_affiliate_password(request):
-    affiliate = get_object_or_404(
-        AffiliateProfile,
-        id=request.session.get('affiliate_id')
-    )
-
-    if not check_password(request.POST.get('old_password'), affiliate.password):
-        messages.error(request, "Old password is incorrect")
-        return redirect('affiliate_profile')
-
-    if request.POST.get('new_password') != request.POST.get('confirm_password'):
-        messages.error(request, "Passwords do not match")
-        return redirect('affiliate_profile')
-
-    affiliate.password = make_password(request.POST.get('new_password'))
-    affiliate.save()
-
-    messages.success(request, "Password changed successfully")
-    return redirect('settings')
-
-
-# =========================
-# LOGOUT
-# =========================
-def affiliate_logout(request):
-    request.session.flush()
-    return redirect('affiliate_login')
 
 def edit_affiliate_profile(request):
     affiliate_id = request.session.get('affiliate_id')

@@ -15,9 +15,9 @@ import os
 import cloudinary
 
 cloudinary.config(
-    cloud_name="dclz1tlmh",
-    api_key="237827795133481",
-    api_secret="umWZSPPYbyjL6N9cyr22ZUzzy7w",
+    cloud_name="dwfvsiltm",
+    api_key="381831573338512",
+    api_secret="MGw1m9wHbe6VlHqL4BZoIQ3ZJV0",
     secure=True
 )
 
@@ -139,8 +139,8 @@ STATIC_URL = 'static/'
 STATICFIELS_DIRS=[os.path.join(BASE_DIR,'static')]
 
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'dclz1tlmh',
-    'API_KEY': '237827795133481',
-    'API_SECRET': 'umWZSPPYbyjL6N9cyr22ZUzzy7w'
+    'CLOUD_NAME': 'dwfvsiltm',
+    'API_KEY': '381831573338512',
+    'API_SECRET': 'MGw1m9wHbe6VlHqL4BZoIQ3ZJV0'
 }
 
