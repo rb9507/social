@@ -4,10 +4,20 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render,redirect
 from social.serilizers import AdminSerializer
 from social.models import SuperAdmin,Post
+from .models import AffiliateProfile
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
+from django.contrib import messages
 from django.contrib.auth import authenticate, login
-from utils.cloudConnect import upload_image_to_cloudinary
+from .models import AffiliateLogin
+from django.db import models
+from .models import Post
+from .models import Post, AffiliatePostAction
+from django.contrib.auth.decorators import login_required
+from utils.cloudConnect import upload_image_to_cloudinary    
 
 N8N_WEBHOOK_URL = "http://localhost:5678/webhook-test/social-post"
+#sending image
 
 
 def send_image_to_n8n(image_url, caption,post_id):
@@ -36,8 +46,24 @@ def send_image_to_n8n(image_url, caption,post_id):
     })
 
 
+
+
+@login_required
 def superAdmin(request):
-    return render(request, 'superadmin.html')  
+    posts = Post.objects.order_by('-created_at')[:6]
+    posts_count = Post.objects.count()
+    users = SuperAdmin.objects.count()
+
+    return render(
+        request,
+        'superadmin.html',
+        {
+            'posts': posts,
+            'posts_count': posts_count,
+            'users': users
+        }
+    )
+ 
 
 def admin_registration(request):
     return render(request, 'adminregestration.html')
@@ -79,32 +105,15 @@ def auth_admin(request):
         username = request.POST.get("username")
         password = request.POST.get("password")
 
-        if not username or not password:
-            return JsonResponse({
-                "success": False,
-                "message": "Username and password are required"
-            }, status=400)
-
-        user = authenticate(
-            request,
-            username=username,
-            password=password
-        )
-
+        user = authenticate(request, username=username, password=password)
         if user is None:
-            return JsonResponse({
-                "success": False,
-                "message": "Invalid username or password"
-            }, status=400)
+            return JsonResponse({"success": False}, status=400)
 
-        # Login strictly using request data
         login(request, user)
-
-        posts=Post.objects.all().order_by('-created_at')
-
-        return render(request, 'superadmin.html',{'posts':posts})
+        return redirect('super_admin')  # URL of dashboard
 
     return JsonResponse({"error": "Invalid method"}, status=405)
+
 
 
 def create_post(request):
@@ -140,10 +149,85 @@ def post_submitted(request):
             created_by=super_admin
         )
 
-        post_id = post.id
+        post_id = post.id # type: ignore
         print("Post created with ID:", post_id)
         print("Image uploaded to Cloudinary:", image_url)
 
-        return send_image_to_n8n(image_url, caption, post_id)
-
     return JsonResponse({"error": "Invalid method"}, status=405)
+
+
+#affiliate user regestration
+def affiliate_register(request):
+    if request.method == "POST":
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        instagram_secret = request.POST.get('instagram_secret')
+        linkedin_secret = request.POST.get('linkedin_secret')
+        facebook_secret = request.POST.get('facebook_secret')
+        twitter_secret = request.POST.get('twitter_secret')
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists")
+            return redirect('affiliate_register')
+
+        user = User.objects.create_user(
+            username=username,
+            password=password
+        )
+
+        AffiliateProfile.objects.create(
+            user = user,
+            instagram_secret=make_password(instagram_secret),
+            linkedin_secret=make_password(linkedin_secret),
+            facebook_secret=make_password(facebook_secret),
+            twitter_secret=make_password(twitter_secret),
+        )
+
+        messages.success(request, "Registration successful")
+        return redirect('affiliate_login')
+    
+
+    return render(request, 'regestration.html')
+
+#Affiliated user Login
+def affiliate_login(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+
+            AffiliateLogin.objects.create(
+                username=username,
+                password=password   # storing as-is (not recommended, but as you want)
+            )
+
+            return redirect('affiliate_userdashboard')
+        else:
+            messages.error(request, "Invalid username or password")
+
+    return render(request, "affiliateduserlogin.html")
+
+# Affiliated user dashboard
+def affiliate_dashboard(request):
+    posts = Post.objects.all().order_by("-created_at")
+    return render(request, 'affiliate_userdashboard.html',{'posts': posts})
+# Affiliate post action
+def affiliate_post_actoion(request):
+    if request.method == "POST":
+         AffiliatePostAction.objects.create(
+             affiliate_username = request.Post.get('username'),
+             post_id = request.POST.get('post_id'),
+             action = request.POST.get('actio'),
+             comment_text = request.POST.get('comment','')
+         )
+         return JsonResponse({'status': 'success'})
+
+
+def posts_list(request):
+    posts = Post.objects.all().order_by('-created_at')
+    return render(request, 'postslist.html', {'posts': posts})
