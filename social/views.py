@@ -29,8 +29,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.views.decorators.http import require_POST
 from django.contrib.auth.hashers import check_password, make_password
-
 from .models import AffiliateProfile, Post
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.contrib.auth.hashers import make_password
+from .models import AffiliateProfile
 
 
 
@@ -230,10 +233,6 @@ def post_submitted(request):
 
 
 #affiliate user regestration
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.contrib.auth.hashers import make_password
-from .models import AffiliateProfile
 
 
 def affiliate_register(request):
