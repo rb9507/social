@@ -5,7 +5,7 @@ from django.shortcuts import render,redirect
 from social.serilizers import AdminSerializer
 from social.models import SuperAdmin,Post
 from django.contrib.auth import authenticate, login
-from erp.utils.cloudConnect import upload_image_to_cloudinary
+from utils.cloudConnect import upload_image_to_cloudinary
 
 N8N_WEBHOOK_URL = "http://localhost:5678/webhook-test/social-post"
 
