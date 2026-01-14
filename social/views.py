@@ -22,8 +22,9 @@ from .models import Post, Like, Comment, Share, AffiliateProfile
 from utils.cloudConnect import upload_image_to_cloudinary    
 from django.contrib.auth import logout
 from django.contrib.auth.hashers import check_password
-
-
+import json
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.views.decorators.http import require_POST
@@ -684,3 +685,76 @@ def del_post(request,post_id):
 def logout_view(request):
     logout(request)
     return redirect('log_admin')
+
+@csrf_exempt
+def collect_post_data(request):
+    if request.method != "POST":
+        return JsonResponse(
+            {"error": "Invalid method"},
+            status=405
+        )
+
+    try:
+        body = json.loads(request.body.decode("utf-8"))
+    except json.JSONDecodeError:
+        return JsonResponse(
+            {"error": "Invalid JSON payload"},
+            status=400
+        )
+
+    posts = body.get("posts")
+
+    if not isinstance(posts, list):
+        return JsonResponse(
+            {"error": "`posts` must be a list"},
+            status=400
+        )
+
+    for post in posts:
+        platform = post.get("platform")
+        pst=Post.objects.get(id=post.get("postid"))
+        match platform:
+            case "facebook":
+                pst.fbpostid=post.get("post_id")
+                pst.fbtoken=post.get("access_token")
+                pst.save()
+            case "instagram":
+                pst.instapostid=post.get("post_id")
+                pst.instatoken=post.get("access_token")
+                pst.save()
+            case "linkedin":
+                pst.lnpostid=post.get("post_id")
+                pst.lntoken=post.get("access_token")
+                pst.save()
+
+    return JsonResponse(
+        {
+            "status": "success",
+            "data": posts
+        },
+        status=200
+    )
+
+
+
+def delete_facebook_post(post_id, access_token):
+    url = f"https://graph.facebook.com/v19.0/{post_id}"
+    response = requests.delete(url, params={"access_token": access_token})
+    return response.json()
+
+
+def delete_instagram_post(media_id, access_token):
+    url = f"https://graph.facebook.com/v19.0/{media_id}"
+    response = requests.delete(url, params={"access_token": access_token})
+    return response.json()
+
+
+def delete_linkedin_post(share_urn, access_token):
+    share_id = share_urn.split(":")[-1]
+    url = f"https://api.linkedin.com/v2/shares/{share_id}"
+    headers = {
+        "Authorization": f"Bearer {access_token}",
+        "X-Restli-Protocol-Version": "2.0.0",
+    }
+    response = requests.delete(url, headers=headers)
+    return {"status_code": response.status_code}

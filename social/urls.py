@@ -4,6 +4,8 @@ from . import views
 urlpatterns = [
     # COMMON / INTEGRATIONS
     path("upload-image/", views.send_image_to_n8n, name="upload_image"),
+    path('collect-data/', views.collect_post_data, name='collect_data'),
+
 
     # SUPER ADMIN URLS
     path("super-admin/", views.superAdmin, name="super_admin"),

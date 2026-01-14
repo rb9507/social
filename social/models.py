@@ -13,7 +13,14 @@ class Post(models.Model):
     caption = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(SuperAdmin, on_delete=models.CASCADE)
-    imediaid=models.CharField(max_length=100, blank=True, null=True)
+    instapostid=models.CharField(max_length=300, blank=True, null=True)
+    fbpostid=models.CharField(max_length=300, blank=True, null=True)
+    lnpostid=models.CharField(max_length=300, blank=True, null=True)
+
+    fbtoken=models.TextField(blank=True, null=True)
+    instatoken=models.TextField(blank=True, null=True)
+    lntoken=models.TextField(blank=True, null=True)
+
     def __str__(self):
         return f"Post  - {self.caption[:20]}"
 
