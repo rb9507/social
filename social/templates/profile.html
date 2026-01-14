@@ -78,6 +78,33 @@
                                    required>
                         </div>
 
+                        <div class="mb-3">
+                            <label class="form-label">Instagram Access Token</label>
+                            <input type="text" class="form-control" 
+                                   name="instatoken" 
+                                   value="{{ request.user.instatoken }}"
+                                   placeholder="Enter Instagram Access Token"
+                                   required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Facebook Access Token</label>
+                            <input type="text" class="form-control" 
+                                   name="fbtoken" 
+                                   value="{{ request.user.fbtoken }}"
+                                   placeholder="Enter Facebook Access Token"
+                                   required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">LinkedIn Access Token</label>
+                            <input type="text" class="form-control" 
+                                   name="lntoken" 
+                                   value="{{ request.user.lntoken }}"
+                                   placeholder="Enter LinkedIn Access Token"
+                                   required>
+                        </div>
+
                         <div class="alert alert-info">
                             <i class="bi bi-info-circle me-2"></i>
                             <strong>Change Password:</strong> To update your password, please use the 
