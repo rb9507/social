@@ -30,6 +30,7 @@ urlpatterns = [
     path("update-password/", views.update_password, name="update_password"),
     path("logout/", views.logout_view, name="logout"),
 
+
     # AFFILIATE USER URLS
     path("affiliate-register/", views.affiliate_register, name="affiliate_register"),
     path("affiliate-login/", views.affiliate_login, name="affiliate_login"),

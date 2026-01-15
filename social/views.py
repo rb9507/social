@@ -607,7 +607,7 @@ def change_password_page(request):
 
 def affiliate_users(request):
     affiliate_profiles = AffiliateProfile.objects.all()
-    return render(request, 'affiliateusers.html', {'user': affiliate_profiles})
+    return render(request, 'affiliateusers.html', {'users': affiliate_profiles})
 
 def setting(request):
     return render(request, 'settings.html')
