@@ -35,11 +35,13 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password
 from .models import AffiliateProfile
-
+from utils.facebook import get_facebook_likes_count,get_facebook_comments_count,get_share_count
 
 
 N8N_WEBHOOK_URL = "http://localhost:5678/webhook-test/social-post"
 #sending image
+
+FBTOKEN=""
 
 N8N_Image_Url="http://localhost:5678/webhook-test/image-url"
 
@@ -285,7 +287,6 @@ def affiliate_login(request):
         if check_password(password, affiliate.password):
             request.session['affiliate_id'] = affiliate.id # type: ignore
             request.session['affiliate_username'] = affiliate.username
-
             return redirect('affiliate_dashboard')  # REDIRECT HERE
         else:
             messages.error(request, "Invalid username or password")
@@ -634,6 +635,8 @@ def update_admin_profile(request):
         super_admin.lntoken=request.POST.get("lntoken")
         super_admin.save()
 
+        FBTOKEN=super_admin.fbtoken
+        print(FBTOKEN)
         print(user)
 
         messages.success(request, "Profile updated successfully")
@@ -730,6 +733,9 @@ def collect_post_data(request):
         platform = post.get("platform")
         pst=Post.objects.get(id=post.get("postid"))
         pst.caption=caption
+        pst.Ipost_url=post.get("Ipost_url")
+        pst.Fposturl=post.get("Fpost_url")
+        pst.Lposturl=post.get("Lpost_url")
         match platform:
             case "facebook":
                 pst.fbpostid=post.get("post_id")
@@ -792,3 +798,17 @@ def delete_linkedin_post(post_urn, access_token):
         "response": response.text or "Deleted"
     }
 
+def postStat(request):
+    posts=Post.objects.all()
+    for post in posts:
+        fb_likes = get_facebook_likes_count(post.fbpostid, FBTOKEN)
+        fb_comments = get_facebook_comments_count(post.fbpostid, FBTOKEN)
+        fb_shares = get_share_count(post.fbpostid, FBTOKEN)
+
+        if fb_likes or fb_comments or fb_shares is not None:
+            post.total_likes = fb_likes
+            post.total_comments = fb_comments
+            post.total_shares = fb_shares
+            post.save()
+        
+    return render(request, 'postStat.html', {'posts': posts})

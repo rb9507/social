@@ -29,6 +29,10 @@ urlpatterns = [
     path("change-password/", views.change_password, name="change_password"),
     path("update-password/", views.update_password, name="update_password"),
     path("logout/", views.logout_view, name="logout"),
+    #path("post-stats/", views.postStat, name="post_stats"),
+    # path("post-likes/<str:postid>/<str:access_token>",views.fetch_fb_likes,name="like_count"),
+    # path("post-comment/<str:postid>/<str:access_token>/",views.fetch_fb_comments,name="comment_count"),
+    # path("post-share/<str:postid>/<str:access_token>",views.fetch_fb_shares,name="share_count"),
 
 
     # AFFILIATE USER URLS
