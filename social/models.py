@@ -5,6 +5,9 @@ from django.contrib.auth.models import User
 class SuperAdmin(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='super_admin')
     name = models.CharField(max_length=100)
+    fbtoken=models.CharField(max_length=300,blank=True, null=True)
+    instatoken=models.CharField(max_length=300,blank=True, null=True)
+    lntoken=models.TextField(blank=True, null=True)
     def __str__(self):
         return self.name
     
@@ -17,9 +20,7 @@ class Post(models.Model):
     fbpostid=models.CharField(max_length=300, blank=True, null=True)
     lnpostid=models.CharField(max_length=300, blank=True, null=True)
 
-    fbtoken=models.CharField(max_length=300,blank=True, null=True)
-    instatoken=models.CharField(max_length=300,blank=True, null=True)
-    lntoken=models.CharField(max_length=300,blank=True, null=True)
+   
 
     def __str__(self):
         return f"Post  - {self.caption[:20]}"

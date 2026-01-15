@@ -1,4 +1,5 @@
 import requests
+import urllib.parse
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render,redirect,get_object_or_404
@@ -626,11 +627,17 @@ def update_admin_profile(request):
         user.last_name = last_name
         user.email = email
         user.save()
+        super_admin=SuperAdmin.objects.get(id=user.id)
+
+        super_admin.fbtoken=request.POST.get("fbtoken")
+        super_admin.instatoken=request.POST.get("instatoken")
+        super_admin.lntoken=request.POST.get("lntoken")
+        super_admin.save()
 
         print(user)
 
         messages.success(request, "Profile updated successfully")
-        return redirect('profile')
+        return render(request, 'profile.html', {'super_admin': super_admin})
 
     return JsonResponse({"error": "Invalid method"}, status=405)
 
@@ -678,9 +685,14 @@ def submit_editpost(request,post_id):
     
 def del_post(request,post_id):
     post=Post.objects.get(id=post_id)
-    delete_facebook_post(post.fbpostid, post.fbtoken)
-    delete_instagram_post(post.instapostid, post.instatoken)       
-    delete_linkedin_post(post.lnpostid, post.lntoken)
+    super_admin=SuperAdmin.objects.get(id=request.user.id)
+    user=super_admin
+    resF=delete_facebook_post(post.fbpostid,user.fbtoken)
+    resI=delete_instagram_post(post.instapostid, user.instatoken)       
+    resL=delete_linkedin_post(post.lnpostid, user.lntoken)
+    print("Facebook Deletion Response:", resF)
+    print("Instagram Deletion Response:", resI)
+    print("LinkedIn Deletion Response:", resL)
     post.delete()
     print("Posts deleted successfully")
     return redirect('posts_list')
@@ -706,6 +718,7 @@ def collect_post_data(request):
         )
 
     posts = body.get("posts")
+    caption= body.get("caption")
 
     if not isinstance(posts, list):
         return JsonResponse(
@@ -716,6 +729,7 @@ def collect_post_data(request):
     for post in posts:
         platform = post.get("platform")
         pst=Post.objects.get(id=post.get("postid"))
+        pst.caption=caption
         match platform:
             case "facebook":
                 pst.fbpostid=post.get("post_id")
@@ -749,12 +763,32 @@ def delete_instagram_post(media_id, access_token):
     return response.json()
 
 
-def delete_linkedin_post(share_urn, access_token):
-    share_id = share_urn.split(":")[-1]
-    url = f"https://api.linkedin.com/v2/shares/{share_id}"
+
+def delete_linkedin_post(post_urn, access_token):
+    if not post_urn:
+        return {"error": "post_urn is empty"}
+
+    # Ensure string
+    post_urn = str(post_urn)
+
+    # Ensure full URN
+    if not post_urn.startswith("urn:li:"):
+        post_urn = f"urn:li:ugcPost:{post_urn}"
+
+    # Encode URN
+    encoded_urn = urllib.parse.quote(post_urn, safe="")
+
+    url = f"https://api.linkedin.com/v2/ugcPosts/{encoded_urn}"
+
     headers = {
         "Authorization": f"Bearer {access_token}",
         "X-Restli-Protocol-Version": "2.0.0",
     }
+
     response = requests.delete(url, headers=headers)
-    return {"status_code": response.status_code}
+
+    return {
+        "status_code": response.status_code,
+        "response": response.text or "Deleted"
+    }
+
