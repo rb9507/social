@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Affiliate Users{% endblock %}
+{% block title %}Posts Summary{% endblock %}
 
 {% block content %}
 
-<h3 class="mb-4">Affiliate Users</h3>
+<h3 class="mb-4">Posts Summary</h3>
 
 <div class="card shadow-sm">
   <div class="card-body">
@@ -14,20 +14,22 @@
         <thead class="table-dark">
           <tr>
             <th>#</th>
-            <th>Username</th>
-            <th>Email</th>
-            <th>Date Joined</th>
-            <th class="text-center">Actions</th>
+            <th>Post Link</th>
+            <th>Toatal Likes</th>
+            <th>Total Comments</th>
+            <th class="text-center">Toatal Shares</th>
           </tr>
         </thead>
 
         <tbody>
-          {% for user in users %}
+          {% for post in posts %}
           <tr>
             <td>{{ forloop.counter }}</td>
-            <td>{{ user.username }}</td>
-            <td>{{ user.email }}</td>
-            <td>{{ user.date_joined | date:"d M Y" }}</td>
+            <td>{{ post.post_url }}</td>
+            <td>{{ post.total_likes }}</td>
+            <td>{{ post.total_comments }}</td>
+            <td>{{ post.total_shares }}</td>
+            
             <td class="text-center">
 
               {% comment %} <!-- Remove User -->
