@@ -301,11 +301,18 @@ def affiliate_dashboard(request):
         return redirect('affiliate_login')
 
     posts = Post.objects.all().order_by('-created_at')
+    uris=[]
+    for post in posts:
+        urls=[]
+        urls.append(post.Ipost_url)
+        urls.append(post.Fposturl)
+        urls.append(post.Lposturl)
+        uris.append(urls)
 
     return render(
         request,
         'affiliate_userdashboard.html',
-        {'posts': posts}
+        {'posts': posts,'urls':uris}
     )
 
 def like_post(request):
@@ -800,7 +807,14 @@ def delete_linkedin_post(post_urn, access_token):
 
 def postStat(request):
     posts=Post.objects.all()
+    
+    uris=[]
     for post in posts:
+        urls=[]
+        urls.append(post.Fposturl)
+        urls.append(post.Ipost_url)
+        urls.append(post.Lposturl)
+        uris.append(urls)
         fb_likes = get_facebook_likes_count(post.fbpostid, FBTOKEN)
         fb_comments = get_facebook_comments_count(post.fbpostid, FBTOKEN)
         fb_shares = get_share_count(post.fbpostid, FBTOKEN)
@@ -811,4 +825,5 @@ def postStat(request):
             post.total_shares = fb_shares
             post.save()
         
-    return render(request, 'postStat.html', {'posts': posts})
+    
+    return render(request, 'postStat.html', {'posts': posts,'urls':uris})
