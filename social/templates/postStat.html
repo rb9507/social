@@ -25,26 +25,40 @@
           {% for post in posts %}
           <tr>
             <td>{{ forloop.counter }}</td>
-            <td>{{ post.post_url }}</td>
+            <td>{{ post.post_url }}
+            
+  
+            <!-- Platform + URL row -->
+            <div class="d-flex align-items-center gap-2">
+
+            <!--  text field -->
+            <input
+            type="text"
+            class="form-control form-control-sm platform-link-input"
+            style="width: 260px;"
+            placeholder="Post URL"
+            readonly
+          />
+
+            <!-- Platform dropdown -->
+           <select
+           class="form-select form-select-sm platform-select"
+           style="width:120px;"
+           data-post-url="{{ post.post_url }}"
+           >
+           <option value="">Select</option>
+           <option value="instagram">Instagram</option>
+           <option value="linkedin">LinkedIn</option>
+           <option value="facebook">Facebook</option>
+           </select>
+
+           </div>
+         </td>
+
             <td>{{ post.total_likes }}</td>
             <td>{{ post.total_comments }}</td>
             <td>{{ post.total_shares }}</td>
             
-            <td class="text-center">
-
-              {% comment %} <!-- Remove User -->
-              <form action="{% url 'remove_user' user.id %}"
-                    method="post"
-                    class="d-inline">
-                {% csrf_token %}
-                <button type="submit"
-                        class="btn btn-sm btn-danger"
-                        onclick="return confirm('Are you sure you want to remove this user?');">
-                  <i class="bi bi-trash"></i> Remove
-                </button>
-              </form> {% endcomment %}
-
-            </td>
           </tr>
           {% empty %}
           <tr>
@@ -60,4 +74,15 @@
   </div>
 </div>
 
+<script>
+  document.addEventListener("change", function (e) {
+    if (e.target.classList.contains("platform-select")) {
+      const container = e.target.closest("div");
+      const input = container.querySelector(".platform-link-input");
+      const postUrl = e.target.dataset.postUrl;
+
+      input.value = postUrl || "";
+    }
+  });
+</script>
 {% endblock %}

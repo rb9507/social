@@ -2,7 +2,6 @@ import requests
 import os
 import json
 from collections import defaultdict
-from dotenv import load_dotenv
 
 def get_facebook_likes_count(post_id, access_token):
     url = f"https://graph.facebook.com/v19.0/{post_id}"
