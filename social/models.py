@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 # Create your models here.
 class SuperAdmin(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='super_admin')
@@ -10,7 +11,13 @@ class SuperAdmin(models.Model):
     lntoken=models.TextField(blank=True, null=True)
     def __str__(self):
         return self.name
-    
+
+class Pages(models.Model):
+    pageId=models.CharField( max_length=500,blank=True,null=True)
+    pageName=models.CharField(blank=True,null=True)
+    def __str__(self) -> str:
+        return f"Page ID {self.pageId}"
+
 class Post(models.Model):
     image = models.ImageField(upload_to='media/')
     caption = models.TextField()
@@ -26,6 +33,8 @@ class Post(models.Model):
     Ipost_url=models.URLField(max_length=800, blank=True, null=True)
     Fposturl=models.URLField(max_length=800, blank=True, null=True) 
     Lposturl=models.URLField(max_length=800, blank=True, null=True) 
+
+    pageId=models.ForeignKey(Pages,on_delete=models.CASCADE)
     
     def __str__(self):
         return f"Post  - {self.caption[:20]}"
@@ -83,22 +92,4 @@ class Share(models.Model):
     
     def __str__(self):
         return f"Share by {self.affiliate.username} on {self.platform}"
-
-
-# class AffiliatePostAction(models.Model):
-#     affiliate_username = models.CharField(max_length=150)
-#     post = models.ForeignKey(Post, on_delete=models.CASCADE)
-#     action = models.CharField(
-#         max_length=20,
-#         choices = [
-#             ('like','Like'),
-#             ('share','Share'),
-#             ('comment','Comment')
-#         ]
-#     )
-#     comment_text = models.TextField(blank=True, null=True)
-#     created_at = models.DateTimeField(auto_now_add=True)
-
-#     def __str__(self):
-#         return f"{self.affiliate_username} - {self.action}"
 

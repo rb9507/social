@@ -46,6 +46,15 @@ def get_share_count(post_id, access_token):
     data = response.json()
     return data.get("shares", {}).get("count", 0)
 
-def get_insta_user_id(request):
+def get_insta_user_id(token,pagid):
+    url=f"https://graph.facebook.com/v19.0/{pagid}"
+    params={
+        "fields":"instagram_buisness_account",
+        "access_token":token
+    }
 
-    url=f"https://graph.facebook.com/v19.0/{PAGE_ID}?fields=instagram_business_account&access_token=ACCESS_TOKEN"
+    response = requests.get(url, params=params)
+    response.raise_for_status()
+    data = response.json()
+
+    print(data["instagram_buisness_account"]["id"])
