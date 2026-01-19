@@ -32,20 +32,25 @@
             <div class="d-flex align-items-center gap-2">
 
             <!--  text field -->
-            <input
-            type="text"
-            class="form-control form-control-sm platform-link-input"
-            style="width: 260px;"
-            placeholder="Post URL"
-            readonly
-          />
+           <a
+            href="#"
+            target="_blank"
+            class="form-control form-control-sm platform-link-input text-truncate"
+            style="width: 260px; text-decoration: none;"
+          >
+           Select platform
+          </a>
 
-            <!-- Platform dropdown -->
+           <!-- Platform dropdown -->
            <select
            class="form-select form-select-sm platform-select"
            style="width:120px;"
-           data-post-url="{{ post.post_url }}"
+           
+           data-instagram="{{ post.Ipost_url }}"
+           data-facebook="{{ post.Fposturl }}"
+           data-linkedin="{{ post.Lposturl }}"
            >
+           
            <option value="">Select</option>
            <option value="instagram">Instagram</option>
            <option value="linkedin">LinkedIn</option>
@@ -75,14 +80,33 @@
 </div>
 
 <script>
-  document.addEventListener("change", function (e) {
-    if (e.target.classList.contains("platform-select")) {
-      const container = e.target.closest("div");
-      const input = container.querySelector(".platform-link-input");
-      const postUrl = e.target.dataset.postUrl;
+document.addEventListener("change", function (e) {
+  if (e.target.classList.contains("platform-select")) {
 
-      input.value = postUrl || "";
+    const select = e.target;
+    const container = select.closest("td");
+    const link = container.querySelector(".platform-link-input");
+
+    let url = "";
+
+    if (select.value === "instagram") {
+      url = select.dataset.instagram;
+    } 
+    else if (select.value === "facebook") {
+      url = select.dataset.facebook;
+    } 
+    else if (select.value === "linkedin") {
+      url = select.dataset.linkedin;
     }
-  });
+
+    if (url) {
+      link.href = url;
+      link.textContent = url;
+    } else {
+      link.href = "#";
+      link.textContent = "No link available";
+    }
+  }
+});
 </script>
 {% endblock %}

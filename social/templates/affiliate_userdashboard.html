@@ -148,22 +148,30 @@
                   <!-- READONLY PLATFORM DROPDOWN -->
                   <div class="mt-3 d-flex align-items-center gap-3">
                     <span class="fw-semibold">Platform</span>
-                    <input
-                     type="text"
-                     class="form-control form-control-sm platform-link-input"
-                     style="width: 260px;"
-                     placeholder="Post URL"
-                     readonly
-                    />
-                    <select 
-                      class="form-select form-select-sm platform-select"
-                      style="width:120px;"
-                      data-post-url="{{ post.post_url }}">
+                    <a
+                     href="#"
+                     target="_blank"
+                     class="form-control form-control-sm platform-link-input text-truncate"
+                     style="width: 260px; text-decoration:none;"
+                    >
+                      Select platform
+                    </a>
+
+                    <!-- Platform dropdown -->
+                    <select
+                      
+                       class="form-select form-select-sm platform-select"
+                       style="width:120px;"
+                       data-instagram="{{ post.Ipost_url }}"
+                       data-facebook="{{ post.Fposturl }}"
+                       data-linkedin="{{ post.Lposturl }}"
+                    >
                        <option value="">Select</option>
-                       <option>Instagram</option>
-                       <option>LinkedIn</option>
-                       <option>Facebook</option>
+                       <option value="instagram">Instagram</option>
+                       <option value="linkedin">LinkedIn</option>
+                       <option value="facebook">Facebook</option>
                     </select>
+                    
                   </div>
                 </td>
 
@@ -196,30 +204,45 @@
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
-  const csrfToken = "{{ csrf_token }}";
+function showSection(sectionId) {
+  document.getElementById('feedSection').style.display = 'none';
+  document.getElementById('postDetailsSection').style.display = 'none';
+  document.getElementById(sectionId).style.display = 'block';
+}
 
-  function showSection(sectionId) {
-    document.getElementById('feedSection').style.display = 'none';
-    document.getElementById('postDetailsSection').style.display = 'none';
-    document.getElementById(sectionId).style.display = 'block';
-  }
 document.addEventListener('change', function (e) {
 
   if (!e.target.classList.contains('platform-select')) return;
 
   const select = e.target;
-  const postUrl = select.getAttribute('data-post-url');
-
   const row = select.closest('tr');
   if (!row) return;
 
-  const input = row.querySelector('.platform-link-input');
-  if (!input) return;
+  const link = row.querySelector('.platform-link-input');
+  if (!link) return;
 
-  input.value = postUrl;
+  let url = "";
+
+  if (select.value === "instagram") {
+    url = select.dataset.instagram;
+  } 
+  else if (select.value === "facebook") {
+    url = select.dataset.facebook;
+  } 
+  else if (select.value === "linkedin") {
+    url = select.dataset.linkedin;
+  }
+
+  if (url && url !== "None") {
+    link.href = url;
+    link.textContent = url;
+  } else {
+    link.href = "#";
+    link.textContent = "Link not available";
+  }
 });
 </script>
+
 </body>
 </html>

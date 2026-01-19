@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add Facebook Page</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Bootstrap CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  >
+</head>
+
+<body class="bg-light">
+
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+
+      <div class="card shadow-sm">
+        <div class="card-body">
+
+          <h4 class="text-center mb-4">Add Facebook Page</h4>
+
+          <form method="post" action="">
+            {% csrf_token %}
+
+            <!-- Page ID -->
+            <div class="mb-3">
+              <label for="page_id" class="form-label">
+                Facebook Page ID
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                id="page_id"
+                name="page_id"
+                placeholder="Enter Facebook Page ID"
+                required
+              >
+            </div>
+
+            <!-- Page Name -->
+            <div class="mb-3">
+              <label for="page_name" class="form-label">
+                Facebook Page Name
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                id="page_name"
+                name="page_name"
+                placeholder="Enter Facebook Page Name"
+                required
+              >
+            </div>
+
+            <!-- Submit Button -->
+            <div class="text-center">
+              <button type="submit" class="btn btn-primary">
+                Submit Page
+              </button>
+            </div>
+
+          </form>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

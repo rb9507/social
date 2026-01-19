@@ -301,18 +301,11 @@ def affiliate_dashboard(request):
         return redirect('affiliate_login')
 
     posts = Post.objects.all().order_by('-created_at')
-    uris=[]
-    for post in posts:
-        urls=[]
-        urls.append(post.Ipost_url)
-        urls.append(post.Fposturl)
-        urls.append(post.Lposturl)
-        uris.append(urls)
 
     return render(
         request,
         'affiliate_userdashboard.html',
-        {'posts': posts,'urls':uris}
+        {'posts': posts}
     )
 
 def like_post(request):
@@ -810,20 +803,19 @@ def postStat(request):
     
     uris=[]
     for post in posts:
-        urls=[]
-        urls.append(post.Fposturl)
-        urls.append(post.Ipost_url)
-        urls.append(post.Lposturl)
-        uris.append(urls)
-        fb_likes = get_facebook_likes_count(post.fbpostid, FBTOKEN)
-        fb_comments = get_facebook_comments_count(post.fbpostid, FBTOKEN)
-        fb_shares = get_share_count(post.fbpostid, FBTOKEN)
+        fb_likes = 2 #get_facebook_likes_count(post.fbpostid, FBTOKEN)
+        fb_comments = 3 #get_facebook_comments_count(post.fbpostid, FBTOKEN)
+        fb_shares = 4 #get_share_count(post.fbpostid, FBTOKEN)
 
         if fb_likes or fb_comments or fb_shares is not None:
             post.total_likes = fb_likes
             post.total_comments = fb_comments
             post.total_shares = fb_shares
             post.save()
-        
-    
-    return render(request, 'postStat.html', {'posts': posts,'urls':uris})
+
+    return render(request, 'postStat.html', {'posts': posts})
+
+
+
+def add_fb_page(request):
+    return render(request, "fbpages.html")
