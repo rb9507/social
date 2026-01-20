@@ -35,8 +35,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password
 from .models import AffiliateProfile
-from utils.facebook import get_facebook_likes_count,get_facebook_comments_count,get_share_count
-
+from utils.facebook import *
 
 N8N_WEBHOOK_URL = "http://localhost:5678/webhook-test/social-post"
 #sending image
@@ -812,9 +811,37 @@ def postStat(request):
             post.total_comments = fb_comments
             post.total_shares = fb_shares
             post.save()
+        
+    
+    return render(request, 'postStat.html', {'posts': posts,'urls':uris})
 
-    return render(request, 'postStat.html', {'posts': posts})
+    
+def get_insta_likes_and_comments(request,ipostid,token):
+    url = f"https://graph.facebook.com/v19.0/{ipostid}"
+    params = {
+        "fields": "like_count,comments_count",
+        "access_token": token
+    }
+    response = requests.get(url, params=params)
+    response.raise_for_status()
+    return response.json()
 
+def add_page(request):
+    if request.method == 'POST':
+        pageName=request.POST.get('pageName')
+        pageId=request.POST.get('pageId')
+
+       
+        page=Pages.objects.create(
+            pageId=pageId,
+            pageName=pageName  
+            )
+        
+        print("Page created")
+
+    pages=Pages.objects.all()
+    
+    return render(request,"pages.html",{"pages":pages})
 
 
 def add_fb_page(request):

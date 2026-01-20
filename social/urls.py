@@ -33,6 +33,10 @@ urlpatterns = [
     # path("post-likes/<str:postid>/<str:access_token>",views.fetch_fb_likes,name="like_count"),
     # path("post-comment/<str:postid>/<str:access_token>/",views.fetch_fb_comments,name="comment_count"),
     # path("post-share/<str:postid>/<str:access_token>",views.fetch_fb_shares,name="share_count"),
+    path("create-fb/",views.add_fb_page,name="fbpage"),
+    path("save-page/",views.add_page,name="savepage"),
+    path("getinsta-likes/<str:ipostid>/<str:token>",views.get_insta_likes_and_comments,name="getinstaLikes"),
+
 
 
     # AFFILIATE USER URLS

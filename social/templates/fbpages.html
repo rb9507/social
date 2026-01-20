@@ -23,7 +23,7 @@
 
           <h4 class="text-center mb-4">Add Facebook Page</h4>
 
-          <form method="post" action="">
+          <form method="post" action="{% url 'savepage' %}">
             {% csrf_token %}
 
             <!-- Page ID -->
@@ -35,7 +35,7 @@
                 type="text"
                 class="form-control"
                 id="page_id"
-                name="page_id"
+                name="pageId"
                 placeholder="Enter Facebook Page ID"
                 required
               >
@@ -50,7 +50,7 @@
                 type="text"
                 class="form-control"
                 id="page_name"
-                name="page_name"
+                name="pageName"
                 placeholder="Enter Facebook Page Name"
                 required
               >
