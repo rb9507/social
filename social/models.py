@@ -34,7 +34,7 @@ class Post(models.Model):
     Fposturl=models.URLField(max_length=800, blank=True, null=True) 
     Lposturl=models.URLField(max_length=800, blank=True, null=True) 
 
-    pageId=models.ForeignKey(Pages,on_delete=models.CASCADE)
+   # pageId=models.ForeignKey(Pages,on_delete=models.CASCADE)
     
     def __str__(self):
         return f"Post  - {self.caption[:20]}"

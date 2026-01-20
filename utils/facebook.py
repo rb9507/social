@@ -2,7 +2,6 @@ import requests
 import os
 import json
 from collections import defaultdict
-from dotenv import load_dotenv
 
 def get_facebook_likes_count(post_id, access_token):
     url = f"https://graph.facebook.com/v19.0/{post_id}"
@@ -57,4 +56,4 @@ def get_insta_user_id(token,pagid):
     response.raise_for_status()
     data = response.json()
 
-    print(data["instagram_buisness_account"]["id"])
+    return data["instagram_buisness_account"]["id"]

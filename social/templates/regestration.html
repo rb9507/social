@@ -43,7 +43,7 @@
           <input type="password" class="form-control" name="password" required>
         </div>
 
-        <div class="mb-3">
+        {% comment %} <div class="mb-3">
           <label class="form-label">Instagram Secret Key</label>
           <input type="password" class="form-control" name="instagram_secret" required>
         </div>
@@ -56,18 +56,13 @@
         <div class="mb-3">
           <label class="form-label">Facebook Secret Key</label>
           <input type="password" class="form-control" name="facebook_secret" required>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label">Twitter (X) Secret Key</label>
-          <input type="password" class="form-control" name="twitter_secret" required>
-        </div>
+        </div> {% endcomment %}
 
         <button type="submit" class="btn btn-primary w-100">Register</button>
 
-        <p class="text-muted small mt-3 text-center">
+        {% comment %} <p class="text-muted small mt-3 text-center">
           ⚠️ All secret keys are stored securely and encrypted on the server.
-        </p>
+        </p> {% endcomment %}
 
       </form>
     </div>

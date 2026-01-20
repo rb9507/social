@@ -300,18 +300,11 @@ def affiliate_dashboard(request):
         return redirect('affiliate_login')
 
     posts = Post.objects.all().order_by('-created_at')
-    uris=[]
-    for post in posts:
-        urls=[]
-        urls.append(post.Ipost_url)
-        urls.append(post.Fposturl)
-        urls.append(post.Lposturl)
-        uris.append(urls)
 
     return render(
         request,
         'affiliate_userdashboard.html',
-        {'posts': posts,'urls':uris}
+        {'posts': posts}
     )
 
 def like_post(request):
@@ -809,14 +802,9 @@ def postStat(request):
     
     uris=[]
     for post in posts:
-        urls=[]
-        urls.append(post.Fposturl)
-        urls.append(post.Ipost_url)
-        urls.append(post.Lposturl)
-        uris.append(urls)
-        fb_likes = get_facebook_likes_count(post.fbpostid, FBTOKEN)
-        fb_comments = get_facebook_comments_count(post.fbpostid, FBTOKEN)
-        fb_shares = get_share_count(post.fbpostid, FBTOKEN)
+        fb_likes = 2 #get_facebook_likes_count(post.fbpostid, FBTOKEN)
+        fb_comments = 3 #get_facebook_comments_count(post.fbpostid, FBTOKEN)
+        fb_shares = 4 #get_share_count(post.fbpostid, FBTOKEN)
 
         if fb_likes or fb_comments or fb_shares is not None:
             post.total_likes = fb_likes
@@ -828,9 +816,15 @@ def postStat(request):
     return render(request, 'postStat.html', {'posts': posts,'urls':uris})
 
     
-def get_insta_likes(request):
-    # get_insta_user_id(FBTOKEN,) 
-    return ""
+def get_insta_likes_and_comments(request,ipostid,token):
+    url = f"https://graph.facebook.com/v19.0/{ipostid}"
+    params = {
+        "fields": "like_count,comments_count",
+        "access_token": token
+    }
+    response = requests.get(url, params=params)
+    response.raise_for_status()
+    return response.json()
 
 def add_page(request):
     if request.method == 'POST':
@@ -847,4 +841,8 @@ def add_page(request):
 
     pages=Pages.objects.all()
     
-    return render(request,"fbpages.html",{"pages":pages})
+    return render(request,"pages.html",{"pages":pages})
+
+
+def add_fb_page(request):
+    return render(request, "fbpages.html")

@@ -25,26 +25,45 @@
           {% for post in posts %}
           <tr>
             <td>{{ forloop.counter }}</td>
-            <td>{{ post.post_url }}</td>
+            <td>{{ post.post_url }}
+            
+  
+            <!-- Platform + URL row -->
+            <div class="d-flex align-items-center gap-2">
+
+            <!--  text field -->
+           <a
+            href="#"
+            target="_blank"
+            class="form-control form-control-sm platform-link-input text-truncate"
+            style="width: 260px; text-decoration: none;"
+          >
+           Select platform
+          </a>
+
+           <!-- Platform dropdown -->
+           <select
+           class="form-select form-select-sm platform-select"
+           style="width:120px;"
+           
+           data-instagram="{{ post.Ipost_url }}"
+           data-facebook="{{ post.Fposturl }}"
+           data-linkedin="{{ post.Lposturl }}"
+           >
+           
+           <option value="">Select</option>
+           <option value="instagram">Instagram</option>
+           <option value="linkedin">LinkedIn</option>
+           <option value="facebook">Facebook</option>
+           </select>
+
+           </div>
+         </td>
+
             <td>{{ post.total_likes }}</td>
             <td>{{ post.total_comments }}</td>
             <td>{{ post.total_shares }}</td>
             
-            <td class="text-center">
-
-              {% comment %} <!-- Remove User -->
-              <form action="{% url 'remove_user' user.id %}"
-                    method="post"
-                    class="d-inline">
-                {% csrf_token %}
-                <button type="submit"
-                        class="btn btn-sm btn-danger"
-                        onclick="return confirm('Are you sure you want to remove this user?');">
-                  <i class="bi bi-trash"></i> Remove
-                </button>
-              </form> {% endcomment %}
-
-            </td>
           </tr>
           {% empty %}
           <tr>
@@ -60,4 +79,34 @@
   </div>
 </div>
 
+<script>
+document.addEventListener("change", function (e) {
+  if (e.target.classList.contains("platform-select")) {
+
+    const select = e.target;
+    const container = select.closest("td");
+    const link = container.querySelector(".platform-link-input");
+
+    let url = "";
+
+    if (select.value === "instagram") {
+      url = select.dataset.instagram;
+    } 
+    else if (select.value === "facebook") {
+      url = select.dataset.facebook;
+    } 
+    else if (select.value === "linkedin") {
+      url = select.dataset.linkedin;
+    }
+
+    if (url) {
+      link.href = url;
+      link.textContent = url;
+    } else {
+      link.href = "#";
+      link.textContent = "No link available";
+    }
+  }
+});
+</script>
 {% endblock %}
