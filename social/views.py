@@ -846,3 +846,23 @@ def add_page(request):
 
 def add_fb_page(request):
     return render(request, "fbpages.html")
+
+def get_insta_username(request, mediaid):
+    # ACCESS_TOKEN = SuperAdmin.objects.get(user=request.user).instatoken
+    ACCESS_TOKEN="EAAREJYWQqckBQnkMNiy8BxbETIIKSlj6zxQqzP9b6lOQ0shzajP5WEnfK5bnUe7ZAuhKn6NZAaSWE8juRjdZCzMp5ZC2FZAGMxWJZALKTKBoA7ttrlZB1JIhQGeBPdFs10YjFKI3aGwTtsb8zB22hghZArAnVazawhLvj43PNJqVmf3geIHSm4BRQsSMl2nQR8Y8aVec2rphso9Kc0tHuSNrDc5VwDZCUTZAEfy5urfviMxednEIXougEZAv7Lv5VZAVpI3T2bmFzmuAHZCBWLrGCK68DWWa3eAZDZD"
+    
+    url = f"https://graph.facebook.com/v19.0/{mediaid}/comments"
+    params = {
+        "fields": "id,username,text,timestamp",
+        "access_token": ACCESS_TOKEN
+    }
+
+    response = requests.get(url, params=params)
+
+    if response.status_code == 200:
+        return JsonResponse(response.json(), safe=False)
+    else:
+        return JsonResponse(
+            {"error": response.text},
+            status=response.status_code
+        )
