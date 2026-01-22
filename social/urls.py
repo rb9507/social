@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import views 
 
 urlpatterns = [
     # COMMON / INTEGRATIONS
@@ -36,7 +36,7 @@ urlpatterns = [
     path("create-fb/",views.add_fb_page,name="fbpage"),
     path("save-page/",views.add_page,name="savepage"),
     path("getinsta-likes/<str:ipostid>/<str:token>",views.get_insta_likes_and_comments,name="getinstaLikes"),
-
+    path("getinsta-username/<str:mediaid>/",views.get_insta_username,name="Iusername"),
 
 
     # AFFILIATE USER URLS
