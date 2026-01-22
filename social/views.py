@@ -806,9 +806,9 @@ def postStat(request):
     
     uris=[]
     for post in posts:
-        fb_likes = 2 #get_facebook_likes_count(post.fbpostid, FBTOKEN)
-        fb_comments = 3 #get_facebook_comments_count(post.fbpostid, FBTOKEN)
-        fb_shares = 4 #get_share_count(post.fbpostid, FBTOKEN)
+        fb_likes = get_facebook_likes_count(post.fbpostid, FBTOKEN)
+        fb_comments =  get_facebook_comments_count(post.fbpostid, FBTOKEN)
+        fb_shares = get_share_count(post.fbpostid, FBTOKEN)
 
         if fb_likes or fb_comments or fb_shares is not None:
             post.total_likes = fb_likes
@@ -820,15 +820,26 @@ def postStat(request):
     return render(request, 'postStat.html', {'posts': posts,'urls':uris})
 
     
-def get_insta_likes_and_comments(request,ipostid,token):
+def get_insta_likes_and_comments(request, ipostid, token):
     url = f"https://graph.facebook.com/v19.0/{ipostid}"
     params = {
         "fields": "like_count,comments_count",
         "access_token": token
     }
-    response = requests.get(url, params=params)
-    response.raise_for_status()
-    return response.json()
+
+    try:
+        response = requests.get(url, params=params)
+        response.raise_for_status()
+        data = response.json()
+        likes=data.get("like_count", 0)
+        comments=data.get("comments_count", 0)
+        return likes, comments
+
+    except requests.exceptions.RequestException as e:
+        return JsonResponse(
+            {"error": str(e)},
+            status=400
+        )
 
 def add_page(request):
     if request.method == 'POST':
@@ -851,22 +862,83 @@ def add_page(request):
 def add_fb_page(request):
     return render(request, "fbpages.html")
 
-def get_insta_username(request, mediaid):
-    # ACCESS_TOKEN = SuperAdmin.objects.get(user=request.user).instatoken
-    ACCESS_TOKEN="EAAREJYWQqckBQnkMNiy8BxbETIIKSlj6zxQqzP9b6lOQ0shzajP5WEnfK5bnUe7ZAuhKn6NZAaSWE8juRjdZCzMp5ZC2FZAGMxWJZALKTKBoA7ttrlZB1JIhQGeBPdFs10YjFKI3aGwTtsb8zB22hghZArAnVazawhLvj43PNJqVmf3geIHSm4BRQsSMl2nQR8Y8aVec2rphso9Kc0tHuSNrDc5VwDZCUTZAEfy5urfviMxednEIXougEZAv7Lv5VZAVpI3T2bmFzmuAHZCBWLrGCK68DWWa3eAZDZD"
-    
+ 
+
+def get_insta_usernames(request):
+    ACCESS_TOKEN = "EAAREJYWQqckBQsYZAZAJO1H2vPwJqn7gBahJPiIRMsgtTl5ifqEcTXvCjZCiOeHASClZBEaXPkwDMTUkzeqPfvXMjdAZCBZAjiZCWTnZArL9snKuVd7lqb6OKuO4oZAmjZCK6aijL0h18HAZCPOKnMe0hghA2M6SYUlwG2ZB4mQ8dBZChZAKGB1J1zDeHgYKntbvit"
+
+    try:
+        super_admin = SuperAdmin.objects.get(user=request.user)
+    except SuperAdmin.DoesNotExist:
+        return JsonResponse({"error": "SuperAdmin not found"}, status=404)
+
+    posts = Post.objects.filter(
+        created_by=super_admin,
+        instapostid__isnull=False
+    ).exclude(instapostid="")
+
+    result = []  # ← post-wise container
+
+    for post in posts:
+        mediaid = post.instapostid
+
+        url = f"https://graph.facebook.com/v19.0/{mediaid}/comments"
+        params = {
+            "fields": "id,username,timestamp",
+            "access_token": ACCESS_TOKEN
+        }
+
+        response = requests.get(url, params=params)
+
+        post_comments = []
+
+        if response.status_code == 200:
+            comments = response.json().get("data", [])
+
+            for comment in comments:
+                print(comment.get("username"))
+                post_comments.append({
+                    "username": comment.get("username"),
+                    "timestamp": comment.get("timestamp")
+                })
+
+        result.append({
+            "post_id": post.id,
+            "media_id": mediaid,
+            "total_comments": len(post_comments),
+            "comments": post_comments
+        })
+
+    return JsonResponse({
+        "total_posts": len(result),
+        "posts": result
+    })
+
+
+def getinsta_username(request,mediaid):
+    ACCESS_TOKEN = "EAAREJYWQqckBQk8wV5w0vEz6URevmnlkSJiAP28Lh3ZB6ecM9QWxW0RorLGqZBTTC4e4rk3KHzaqVcGPsg8flZB2p2An4SOH0SSZAn6or2ZCS5ssEwUyZANtY4oF453vi3lJHRCFclTYxeFULxSE4PnxJO6q6dYlDajc8f5KOGIRNVxXFzudrD41RpGIj79LRRjH2PK0MZCeLtSyCTnPPZAaL4844LGEbywV7OxK126rgOYAdfyKVbzc0ZBt0bSNlRiyiMvqaSS9fC5OtIavudJUV9mKr"
     url = f"https://graph.facebook.com/v19.0/{mediaid}/comments"
     params = {
-        "fields": "id,username,text,timestamp",
+        "fields": "id,username,timestamp",
         "access_token": ACCESS_TOKEN
     }
-
     response = requests.get(url, params=params)
 
     if response.status_code == 200:
-        return JsonResponse(response.json(), safe=False)
+        comments = response.json().get("data", [])
+        result = []
+        for comment in comments:
+            print(comment.get("username"))
+            result.append({
+                "username": comment.get("username"),
+                "timestamp": comment.get("timestamp")
+            })
+        return JsonResponse({
+            "total_comments": len(result),
+            "comments": result
+        })
     else:
-        return JsonResponse(
-            {"error": response.text},
-            status=response.status_code
-        )
+        return JsonResponse({
+            "error": "Failed to fetch comments",
+            "status_code": response.status_code
+        }, status=response.status_code)

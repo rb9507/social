@@ -36,8 +36,8 @@ urlpatterns = [
     path("create-fb/",views.add_fb_page,name="fbpage"),
     path("save-page/",views.add_page,name="savepage"),
     path("getinsta-likes/<str:ipostid>/<str:token>",views.get_insta_likes_and_comments,name="getinstaLikes"),
-    path("getinsta-username/<str:mediaid>/",views.get_insta_username,name="Iusername"),
-
+    path("getinsta-username/",views.get_insta_usernames,name="Iusername"),
+    path("getusernames/<str:mediaid>",views.getinsta_username,name="Inusernames"),
 
     # AFFILIATE USER URLS
     path("affiliate-register/", views.affiliate_register, name="affiliate_register"),
