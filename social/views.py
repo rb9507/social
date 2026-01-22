@@ -735,6 +735,10 @@ def collect_post_data(request):
         pst.Ipost_url=post.get("Ipost_url")
         pst.Fposturl=post.get("Fpost_url")
         pst.Lposturl=post.get("Lpost_url")
+
+        print(post.get("Ipost_url"))
+        print(post.get("Fpost_url"))
+        print(post.get("Lpost_url"))
         match platform:
             case "facebook":
                 pst.fbpostid=post.get("post_id")
