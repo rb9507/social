@@ -30,14 +30,23 @@ urlpatterns = [
     path("update-password/", views.update_password, name="update_password"),
     path("logout/", views.logout_view, name="logout"),
     path("post-stats/", views.postStat, name="post_stats"),
-    # path("post-likes/<str:postid>/<str:access_token>",views.fetch_fb_likes,name="like_count"),
+    #path("post-likes/<str:postid>/<str:access_token>",views.fetch_fb_likes,name="like_count"),
     # path("post-comment/<str:postid>/<str:access_token>/",views.fetch_fb_comments,name="comment_count"),
     # path("post-share/<str:postid>/<str:access_token>",views.fetch_fb_shares,name="share_count"),
     path("create-fb/",views.add_fb_page,name="fbpage"),
     path("save-page/",views.add_page,name="savepage"),
     path("getinsta-likes/<str:ipostid>/<str:token>",views.get_insta_likes_and_comments,name="getinstaLikes"),
-    path("getinsta-username/",views.get_insta_usernames,name="Iusername"),
-    path("getusernames/<str:mediaid>",views.getinsta_username,name="Inusernames"),
+    path("getinsta-username/",views.get_insta_user_id,name="Iusername"),
+    path("getusernames/<str:mediaid>",views.get_insta_user_id,name="Inusernames"),
+    path("getfacebook-usernames/<str:postid>/",views.get_facebook_commenters,name="getfacebook_usernames"),
+    path("linkedin/comments/<path:ugc_post_urn>/", views.get_linkedin_comments, name="get_linkedin_comments"),
+    #path("instagram/sync-comments/", views.sync_instagram_comments, name="sync_instagram_comments"),
+    path("sync-instagram-comments/", views.sync_instagram_comments),
+    path("insta/post-stats/<str:ipostid>/<str:token>/",views.get_insta_likes_and_comments,name="insta_post_stats"),
+
+
+
+
 
     # AFFILIATE USER URLS
     path("affiliate-register/", views.affiliate_register, name="affiliate_register"),

@@ -93,3 +93,20 @@ class Share(models.Model):
     def __str__(self):
         return f"Share by {self.affiliate.username} on {self.platform}"
 
+
+
+class InstagramComment(models.Model):
+    post = models.ForeignKey(
+        "Post",
+        on_delete=models.CASCADE,
+        related_name="instagram_comments"
+    )
+    comment_id = models.CharField(max_length=100, unique=True)
+    instagram_user_id = models.CharField(max_length=100)
+    username = models.CharField(max_length=255, null=True, blank=True)
+    text = models.TextField(null=True, blank=True)
+    timestamp = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.comment_id

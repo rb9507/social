@@ -36,6 +36,9 @@ from django.contrib import messages
 from django.contrib.auth.hashers import make_password
 from .models import AffiliateProfile
 from utils.facebook import *
+from django.views.decorators.http import require_GET
+from .models import Post, SuperAdmin, InstagramComment
+
 
 N8N_WEBHOOK_URL = "http://localhost:5678/webhook-test/social-post"
 #sending image
@@ -443,9 +446,6 @@ def affiliate_share_post(request):
         "message": "Post shared successfully"
     })
 
-
-
-
 #  AFFILIATE SETTINGS PAGE
 def usersettings(request):
     affiliate_id = request.session.get('affiliate_id')
@@ -621,7 +621,8 @@ def update_admin_profile(request):
         first_name = request.POST.get("first_name")
         last_name = request.POST.get("last_name")
         email = request.POST.get("email")
-
+        global FBTOKEN
+        
         user = request.user
         user.first_name = first_name
         user.last_name = last_name
@@ -819,7 +820,7 @@ def postStat(request):
     
     return render(request, 'postStat.html', {'posts': posts,'urls':uris})
 
-    
+
 def get_insta_likes_and_comments(request, ipostid, token):
     url = f"https://graph.facebook.com/v19.0/{ipostid}"
     params = {
@@ -831,15 +832,26 @@ def get_insta_likes_and_comments(request, ipostid, token):
         response = requests.get(url, params=params)
         response.raise_for_status()
         data = response.json()
-        likes=data.get("like_count", 0)
-        comments=data.get("comments_count", 0)
-        return likes, comments
+
+        return JsonResponse({
+            "post_id": ipostid,
+            "like_count": data.get("like_count", 0),
+            "comments_count": data.get("comments_count", 0)
+        })
 
     except requests.exceptions.RequestException as e:
         return JsonResponse(
             {"error": str(e)},
             status=400
         )
+
+    # 🛡️ SAFETY NET (should never hit, but prevents None)
+    return JsonResponse(
+        {"error": "Unexpected server error"},
+        status=500
+    )
+
+
 
 def add_page(request):
     if request.method == 'POST':
@@ -862,83 +874,179 @@ def add_page(request):
 def add_fb_page(request):
     return render(request, "fbpages.html")
 
- 
 
-def get_insta_usernames(request):
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from dateutil.parser import parse
+from django.db import IntegrityError
+
+@login_required
+def sync_instagram_comments(request):
     ACCESS_TOKEN = "EAAREJYWQqckBQsYZAZAJO1H2vPwJqn7gBahJPiIRMsgtTl5ifqEcTXvCjZCiOeHASClZBEaXPkwDMTUkzeqPfvXMjdAZCBZAjiZCWTnZArL9snKuVd7lqb6OKuO4oZAmjZCK6aijL0h18HAZCPOKnMe0hghA2M6SYUlwG2ZB4mQ8dBZChZAKGB1J1zDeHgYKntbvit"
 
-    try:
-        super_admin = SuperAdmin.objects.get(user=request.user)
-    except SuperAdmin.DoesNotExist:
-        return JsonResponse({"error": "SuperAdmin not found"}, status=404)
+    super_admin = SuperAdmin.objects.get(user=request.user)
 
     posts = Post.objects.filter(
         created_by=super_admin,
         instapostid__isnull=False
     ).exclude(instapostid="")
 
-    result = []  # ← post-wise container
+    inserted = 0
+    skipped = 0
 
     for post in posts:
-        mediaid = post.instapostid
-
-        url = f"https://graph.facebook.com/v19.0/{mediaid}/comments"
+        url = f"https://graph.facebook.com/v19.0/{post.instapostid}/comments"
         params = {
-            "fields": "id,username,timestamp",
+            "fields": "id,text,timestamp,from{id,username}",
             "access_token": ACCESS_TOKEN
         }
 
         response = requests.get(url, params=params)
 
-        post_comments = []
+        # 🔥 ADD THESE TWO LINES
+        print("POST:", post.id, post.instapostid)
+        print("API RESPONSE:", response.json())
 
-        if response.status_code == 200:
-            comments = response.json().get("data", [])
+        if response.status_code != 200:
+            continue
 
-            for comment in comments:
-                print(comment.get("username"))
-                post_comments.append({
-                    "username": comment.get("username"),
-                    "timestamp": comment.get("timestamp")
-                })
+        for comment in response.json().get("data", []):
 
-        result.append({
-            "post_id": post.id,
-            "media_id": mediaid,
-            "total_comments": len(post_comments),
-            "comments": post_comments
-        })
+            from_data = comment.get("from")
+            if not from_data:
+                continue
+
+            try:
+                obj, created = InstagramComment.objects.get_or_create(
+                    comment_id=comment["id"],
+                    defaults={
+                        "post": post,
+                        "instagram_user_id": from_data.get("id"),
+                        "username": from_data.get("username"),
+                        "text": comment.get("text"),
+                        "timestamp": parse(comment.get("timestamp")),
+                    }
+                )
+
+                if created:
+                    inserted += 1
+                else:
+                    skipped += 1
+
+            except IntegrityError as e:
+                skipped += 1
+                print("DB ERROR:", e)
+
+            except Exception as e:
+                print("UNEXPECTED ERROR:", e)
 
     return JsonResponse({
-        "total_posts": len(result),
-        "posts": result
+        "status": "success",
+        "inserted_rows": inserted,
+        "skipped_rows": skipped
     })
 
 
-def getinsta_username(request,mediaid):
-    ACCESS_TOKEN = "EAAREJYWQqckBQk8wV5w0vEz6URevmnlkSJiAP28Lh3ZB6ecM9QWxW0RorLGqZBTTC4e4rk3KHzaqVcGPsg8flZB2p2An4SOH0SSZAn6or2ZCS5ssEwUyZANtY4oF453vi3lJHRCFclTYxeFULxSE4PnxJO6q6dYlDajc8f5KOGIRNVxXFzudrD41RpGIj79LRRjH2PK0MZCeLtSyCTnPPZAaL4844LGEbywV7OxK126rgOYAdfyKVbzc0ZBt0bSNlRiyiMvqaSS9fC5OtIavudJUV9mKr"
-    url = f"https://graph.facebook.com/v19.0/{mediaid}/comments"
+
+def get_facebook_commenters(request, postid):
+
+
+    ACCESS_TOKEN = "EAAMcHkCZAkvIBQiWQTaGC237dLwUKDYYFNcDcHi9kSkIPQLWTxWwGAcbokQYZCQcf1FVF4FojBf3AwYaROC6B6spmrZAOZBjkP0tVBlRQpvRSt4hl3MFe6K2tb95vVnVG642D8jecoY96yxu2Jhv1CKlDFi5X69F8rdiT0UTRMuXKWT6UEZAa7YvzmO6I3WEu0JZAm"
+
+    if not ACCESS_TOKEN:
+        return JsonResponse(
+            {"error": "Facebook Page access token is missing"},
+            status=400
+        )
+
+    url = f"https://graph.facebook.com/v19.0/{postid}/comments"
+
     params = {
-        "fields": "id,username,timestamp",
+        "fields": "from{id,name},created_time",
         "access_token": ACCESS_TOKEN
     }
+
     response = requests.get(url, params=params)
 
-    if response.status_code == 200:
-        comments = response.json().get("data", [])
-        result = []
-        for comment in comments:
-            print(comment.get("username"))
-            result.append({
-                "username": comment.get("username"),
-                "timestamp": comment.get("timestamp")
-            })
-        return JsonResponse({
-            "total_comments": len(result),
-            "comments": result
+    if response.status_code != 200:
+        return JsonResponse(response.json(), status=response.status_code)
+
+    commenters = []
+    for comment in response.json().get("data", []):
+        user = comment.get("from", {})
+        commenters.append({
+            "user_id": user.get("id"),
+            "name": user.get("name"),
+            "commented_at": comment.get("created_time")
         })
-    else:
-        return JsonResponse({
-            "error": "Failed to fetch comments",
-            "status_code": response.status_code
-        }, status=response.status_code)
+
+    return JsonResponse({
+        "total_comments": len(commenters),
+        "commenters": commenters
+    })
+
+
+
+ACCESS_TOKEN = "AQVOY7lxuwHJ7NFSSVocoXrwS0TH_T7HOl4eRvVR51T_E0gjArOhR61LNzm8-o7kCoHc4p5WyK48Kb0hjIjWDEuyU92FrXOxGR6TzYDhuEWM0KW-stN3tjan5N9uAY3tCYD5QbL4nYZ1RBT0pzwIHd_Vj28vUdboc0s692bfLjw2MQTsOdna3gjiXaRW8UuvR1qpXgiNfH_m2iwyv0T3sLmaUfgFyAubqpjTV3FqjoJjADjnUAHjiX6dUVS4k0SKRSjfuWOtAAUHtVygqxkOjT_HWh0ZcPNZp13PRkUUHE9i1KOfyVda0Sqf4PxXgipByNLmBrA5AHTqLdRpg1IkrxjYSMZa1A"
+
+def get_linkedin_comments(request, ugc_post_urn):
+    access_token = request.headers.get("Authorization")
+
+    if not access_token:
+        return JsonResponse(
+            {"error": "Authorization header missing"},
+            status=401
+        )
+
+    if not access_token.startswith("Bearer "):
+        access_token = f"Bearer {access_token}"
+
+    url = "https://api.linkedin.com/v2/socialActions/{}/comments".format(
+        ugc_post_urn
+    )
+
+    headers = {
+        "Authorization": access_token,
+        "X-Restli-Protocol-Version": "2.0.0",
+    }
+
+    params = {
+        "q": "socialAction",
+        "count": 50
+    }
+
+    response = requests.get(url, headers=headers, params=params)
+
+    if response.status_code != 200:
+        return JsonResponse(
+            {
+                "error": "LinkedIn API error",
+                "status": response.status_code,
+                "details": response.text
+            },
+            status=response.status_code
+        )
+
+    data = response.json()
+
+    comments = []
+
+    for element in data.get("elements", []):
+        comments.append({
+            "comment_id": element.get("id"),
+            "actor_urn": element.get("actor"),
+            "message": element.get("message", {}).get("text"),
+            "created_time": element.get("created", {}).get("time"),
+            "parent_comment_id": element.get("parentComment")
+        })
+
+    return JsonResponse(
+        {
+            "ugc_post_urn": ugc_post_urn,
+            "total_comments": len(comments),
+            "comments": comments
+        },
+        safe=False
+    )
+
+  
